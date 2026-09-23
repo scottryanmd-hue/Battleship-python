@@ -110,8 +110,14 @@ def header() -> list[str]:
 
 def footer(hint: str = "") -> list[str]:
     """The Wii Menu tray: rounded buttons and a pointer hint."""
-    buttons = "  ".join(art.color(f"( {b} )", art.INK) for b in ("Wii", "Mii", "SD"))
-    text = " " + buttons + "  " + art.color(f"{art.POINTER} {hint}" if hint else "", art.INK)
+    buttons = "  ".join(art.color(f"( {b} )", art.INK) for b in ("Wii", "Mii"))
+    text = (
+        " "
+        + buttons
+        + "  "
+        + art.color("( A )", art.WII_BLUE + art.BOLD)
+        + art.color(f" {art.POINTER} {hint}" if hint else "", art.INK)
+    )
     return [fill(text, ARENA_W, art.BG_PANEL)]
 
 
@@ -143,17 +149,37 @@ def menu_screen(step: int) -> list[str]:
     return out
 
 
-def cell_text(board: Board, row: int, col: int, reveal: bool, team_glyph: str, accent: str) -> str:
+def hull_cell(ship, row: int, col: int, state: str, team_glyph: str, accent: str) -> str:
+    """One three-column slice of a grey hull, so cells join into a whole ship."""
+    idx = ship.cells.index((row, col))
+    last = len(ship.cells) - 1
+    horizontal = ship.cells[0][0] == ship.cells[-1][0]
+    parts = art.HULL_H if horizontal else art.HULL_V
+    segment = parts["bow" if idx == 0 else "stern" if idx == last else "mid"]
+    steel = art.STEEL_DEAD if state == "sunk" else art.STEEL
+
+    left, middle, right = segment
+    if state == "hit":
+        middle = art.color("✸", art.RED + art.BOLD)
+    elif state == "sunk":
+        middle = art.color("#", art.STEEL_DEAD)
+    elif idx == last // 2 and 0 < idx < last:
+        middle = art.color(team_glyph, accent)  # team logo painted amidships
+    else:
+        middle = art.color(middle, steel)
+    return art.color(left, steel) + middle + art.color(right, steel)
+
+
+def cell_block(board: Board, row: int, col: int, reveal: bool, team_glyph: str, accent: str) -> str:
+    """The full CELL-wide contents of one square."""
     mark = board.grid[row][col]
-    if mark == Board.SUNK:
-        return art.color("#", art.DARK)
-    if mark == Board.HIT:
-        return art.color("✸", art.RED + art.BOLD)
+    ship = board.ship_at(row, col)
+    if ship is not None and (reveal or ship.sunk or mark == Board.HIT):
+        state = "sunk" if mark == Board.SUNK else "hit" if mark == Board.HIT else "ok"
+        return hull_cell(ship, row, col, state, team_glyph, accent)
     if mark == Board.MISS:
-        return art.color("o", art.WII_BLUE)
-    if reveal and board.ship_at(row, col) is not None:
-        return art.color(team_glyph, accent)
-    return art.color(art.WATER, art.NAVY)
+        return " " + art.color("o", art.WII_BLUE) + " "
+    return " " + art.color(art.WATER, art.NAVY) + " "
 
 
 def render_board(
@@ -171,9 +197,12 @@ def render_board(
     for r in range(SIZE):
         cells = []
         for c in range(SIZE):
-            glyph = overlay.get((r, c)) or cell_text(board, r, c, reveal, team_glyph, accent)
-            lead = (CELL - 1) // 2
-            cells.append(" " * lead + glyph + " " * (CELL - 1 - lead))
+            shot = overlay.get((r, c))
+            if shot:
+                lead = (CELL - 1) // 2
+                cells.append(" " * lead + shot + " " * (CELL - 1 - lead))
+            else:
+                cells.append(cell_block(board, r, c, reveal, team_glyph, accent))
         rows.append(tint(art.color(f" {LETTERS[r]} ", art.INK) + "".join(cells), art.BG_SEA))
     return panel(rows, title=title, accent=accent, width=BOARD_W)
 
@@ -194,8 +223,11 @@ def meter(value: int, total: int, code: str, width: int = 10) -> str:
 def scoreboard(stats: dict) -> list[str]:
     """Wii Sports style: two Miis, one big score, soft meters underneath."""
     a = art
-    devin = [a.color(l, a.ORANGE) for l in a.MII_DEVIN]
-    cursor = [a.color(l, a.INK) for l in a.MII_CURSOR]
+    lead = stats["devin_sunk"] - stats["cursor_sunk"]
+    mood = "win" if lead > 0 else "lose" if lead < 0 else ""
+    flip = {"win": "lose", "lose": "win", "": ""}[mood]
+    devin = [a.color(l, a.ORANGE) for l in a.mii(a.MII_DEVIN, mood)]
+    cursor = [a.color(l, a.INK) for l in a.mii(a.MII_CURSOR, flip)]
     score = f"{stats['devin_sunk']}  -  {stats['cursor_sunk']}"
     fleet = 5
 
@@ -241,10 +273,12 @@ def fleet_status(board: Board, label: str, accent: str) -> list[str]:
     lines = []
     for ship in board.ships:
         if ship.sunk:
-            bar = art.color("SUNK 💀", art.DARK)
+            bar = art.color("▰" * ship.size, art.STEEL_DEAD) + art.color("  SUNK", art.DARK)
         else:
-            dots = "".join("✸" if cell in ship.hits else "▪" for cell in ship.cells)
-            bar = art.color(dots, art.RED if ship.hits else accent)
+            bar = "".join(
+                art.color("✸", art.RED) if cell in ship.hits else art.color("▰", art.STEEL)
+                for cell in ship.cells
+            )
         lines.append(art.color(f"{ship.name:<11}", art.INK) + " " + bar)
     return panel(lines, title=f"{label} FLEET", accent=accent, width=BOARD_W)
 
@@ -296,7 +330,7 @@ class Screen:
         if extra:
             body += extra
         out = header() + [fill(line, ARENA_W, art.BG_WHITE) for line in body]
-        out += footer("⬢ Devin   ◆ Cursor   ✸ hit   o miss   # sunk")
+        out += footer("▰ ship   ✸ hit   o miss   # sunk")
         if message:
             out.append("")
             out.append(message)

@@ -107,6 +107,8 @@ class Game:
 
     def ai_turn(self) -> None:
         row, col = self.ai_targets.pop()
+        while self.player.already_shot(row, col):
+            row, col = self.ai_targets.pop()
         self.screen.frame(message=art.color(f"  Cursor is targeting {format_coord(row, col)}...", art.INK + art.BOLD))
         self.screen.pause(0.5)
         self.resolve_shot("cursor", row, col)

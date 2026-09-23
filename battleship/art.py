@@ -16,6 +16,11 @@ RED = "\033[38;5;160m"
 YELLOW = "\033[38;5;172m"
 GREEN = "\033[38;5;28m"
 
+# Hull steel: the ships themselves are grey, whoever they belong to.
+STEEL = "\033[38;5;245m"
+STEEL_LIT = "\033[38;5;252m"
+STEEL_DEAD = "\033[38;5;240m"
+
 BG_WHITE = "\033[48;5;255m"
 BG_PANEL = "\033[48;5;253m"
 BG_SEA = "\033[48;5;152m"
@@ -36,6 +41,10 @@ SMOKE = ["·", "∘", "°", "˙"]
 
 OTTER_SMALL = "🦦"
 
+# Hull segments, drawn three columns wide so neighbouring cells join up.
+HULL_H = {"bow": "◀██", "mid": "███", "stern": "██▶"}
+HULL_V = {"bow": "▐▲▌", "mid": "▐█▌", "stern": "▐▼▌"}
+
 # Mii-style channel portraits.
 MII_DEVIN = [
     " ╭─────╮ ",
@@ -50,6 +59,17 @@ MII_CURSOR = [
     " │  ─  │ ",
     " ╰─────╯ ",
 ]
+
+
+def mii(base: list[str], mood: str) -> list[str]:
+    """Same Mii, different mouth: 'win', 'lose' or the neutral default."""
+    mouth = {"win": "ᵔ", "lose": "ᵒ"}.get(mood)
+    if mouth is None:
+        return base
+    face = list(base)
+    face[2] = f" │  {mouth}  │ "
+    return face
+
 
 WIIMOTE = [
     "╭───╮",
