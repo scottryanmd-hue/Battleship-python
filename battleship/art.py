@@ -85,12 +85,16 @@ def color(text: str, code: str) -> str:
 
 
 def banner() -> str:
+    """Logos stay outside the box so ambiguous-width glyphs can't skew the border."""
+    title = "B A T T L E S H I P :  D E V I N   v s   C U R S O R"
+    inner = len(title) + 8
     lines = [
-        "╔══════════════════════════════════════════════════════════════╗",
-        "║   ⬢  B A T T L E S H I P :  D E V I N   v s   C U R S O R  ◆  ║",
-        "╚══════════════════════════════════════════════════════════════╝",
+        "╔" + "═" * inner + "╗",
+        "║" + title.center(inner) + "║",
+        "╚" + "═" * inner + "╝",
     ]
-    return "\n".join(color(line, ORANGE + BOLD) for line in lines)
+    crest = f"{COGNITION_GLYPH} HOME · DEVIN      AWAY · CURSOR {CURSOR_GLYPH}".center(inner + 2)
+    return "\n".join(color(line, ORANGE + BOLD) for line in lines) + "\n" + color(crest, GREY)
 
 
 def ship_broadside(name: str, label: str, glyph: str, accent: str) -> list[str]:

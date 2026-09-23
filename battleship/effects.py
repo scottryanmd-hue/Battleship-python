@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from . import art
-from .board import SIZE, Ship, format_coord
+from .board import EXPLOSION_THRESHOLD, SIZE, Ship, format_coord
 from .render import Screen
 
 TRAIL_CHARS = ["˙", "°", "∘", "·"]
@@ -24,9 +24,9 @@ def _overlay_kwargs(team: str, overlay: dict) -> dict:
 def fly_missile(screen: Screen, team: str, row: int, col: int) -> None:
     """Send a logo-shaped missile across the target grid, trailing smoke."""
     head = (
-        art.color(art.COGNITION_GLYPH, art.ORANGE + art.BOLD)
+        art.color(art.COGNITION_GLYPH, art.ORANGE)
         if team == "devin"
-        else art.color(art.CURSOR_GLYPH, art.WHITE + art.BOLD)
+        else art.color(art.CURSOR_GLYPH, art.WHITE)
     )
     launch = _launch_lines(team)
     if team == "devin":
@@ -67,7 +67,7 @@ def splash(screen: Screen, team: str, row: int, col: int) -> None:
 
 
 def impact(screen: Screen, team: str, row: int, col: int, ship: Ship) -> None:
-    hull = f"{ship.name} ({ship.hit_count}/{min(3, ship.size)} missiles to detonation)"
+    hull = f"{ship.name} ({ship.hit_count}/{min(EXPLOSION_THRESHOLD, ship.size)} missiles to detonation)"
     for glyph, code in (("✷", art.YELLOW), ("✸", art.RED), ("✹", art.YELLOW), ("✸", art.RED)):
         screen.frame(
             message=art.color(f"  DIRECT HIT on the {hull}", art.RED + art.BOLD),
@@ -79,14 +79,14 @@ def impact(screen: Screen, team: str, row: int, col: int, ship: Ship) -> None:
 
 def explode(screen: Screen, team: str, ship: Ship, exploded: bool) -> None:
     flash = {cell: art.color("✹", art.YELLOW + art.BOLD) for cell in ship.cells}
+    missiles = min(EXPLOSION_THRESHOLD, ship.size)
+    if exploded and team == "devin":
+        headline = f"  💥 {missiles} COGNITION MISSILES — the {ship.name} DETONATES! 💥"
+    else:
+        headline = f"  💥 The {ship.name} is breaking apart! 💥"
     for frame in art.EXPLOSION_FRAMES:
         screen.frame(
-            message=art.color(
-                f"  💥 THREE COGNITION MISSILES — the {ship.name} DETONATES! 💥"
-                if exploded and team == "devin"
-                else f"  💥 The {ship.name} is breaking apart! 💥",
-                art.RED + art.BOLD,
-            ),
+            message=art.color(headline, art.RED + art.BOLD),
             extra=[art.color(line, art.YELLOW) for line in frame],
             **_overlay_kwargs(team, flash),
         )

@@ -27,7 +27,7 @@ def cell_text(board: Board, row: int, col: int, reveal: bool, team_glyph: str, a
     if mark == Board.MISS:
         return art.color("o", art.BLUE)
     if reveal and board.ship_at(row, col) is not None:
-        return art.color(team_glyph, accent + art.BOLD)
+        return art.color(team_glyph, accent)
     return art.color(art.WATER, art.NAVY)
 
 
