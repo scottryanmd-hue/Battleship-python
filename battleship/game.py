@@ -13,7 +13,7 @@ from .board import (
     format_coord,
     parse_coord,
 )
-from .render import Screen, clear
+from .render import ARENA_W, Screen, clear, fill, footer, menu_screen, panel
 
 
 class Game:
@@ -44,16 +44,21 @@ class Game:
             raise SystemExit("\nNo input available — bye.")
 
     def intro(self) -> None:
-        clear()
-        print(art.banner())
-        print(art.color("\n  HOME  🦦 DEVIN   ⬢ cognition missiles, otter finishers", art.ORANGE))
-        print(art.color("  AWAY  ◆ CURSOR  ◆ cursor missiles, no otters\n", art.WHITE))
-        print(art.color("  Coordinates look like B7 (row A-J, column 1-10).", art.GREY))
-        print(art.color("  Three cognition missiles detonate a hull — then the otter finishes it.\n", art.GREY))
+        for step in range(4):
+            clear()
+            out = menu_screen(step)
+            out += [
+                fill(art.color("  Coordinates look like B7 (row A-J, column 1-10).", art.INK), ARENA_W, art.BG_WHITE),
+                fill(art.color("  Three cognition missiles detonate a hull — then the otter finishes it.", art.INK), ARENA_W, art.BG_WHITE),
+                fill("", ARENA_W, art.BG_WHITE),
+            ]
+            out += footer("point at a channel and press A")
+            print("\n".join(out))
+            self.screen.pause(0.35)
 
     def place_player_fleet(self) -> None:
         self.intro()
-        choice = self.ask(art.color("  Place your fleet [r]andomly or [m]anually? (r/m): ", art.YELLOW)).strip().lower()
+        choice = self.ask(art.color(f"  {art.POINTER} Place your fleet [r]andomly or [m]anually? (r/m): ", art.WII_BLUE)).strip().lower()
         if choice.startswith("m"):
             self.place_manually()
         else:
@@ -64,10 +69,10 @@ class Game:
         for name, size in FLEET:
             while True:
                 self.screen.frame(
-                    message=art.color(f"  Place your {name} ({size} cells).", art.YELLOW + art.BOLD)
+                    message=art.color(f"  {art.POINTER} Place your {name} ({size} cells).", art.WII_BLUE + art.BOLD)
                 )
-                raw = self.ask(art.color(f"  Bow coordinate for {name} (e.g. B3): ", art.YELLOW))
-                orient = self.ask(art.color("  Orientation [h]orizontal / [v]ertical: ", art.YELLOW))
+                raw = self.ask(art.color(f"  Bow coordinate for {name} (e.g. B3): ", art.WII_BLUE))
+                orient = self.ask(art.color("  Orientation [h]orizontal / [v]ertical: ", art.WII_BLUE))
                 try:
                     row, col = parse_coord(raw)
                     horizontal = not orient.strip().lower().startswith("v")
@@ -81,11 +86,11 @@ class Game:
     def player_turn(self) -> None:
         while True:
             self.screen.frame(
-                message=art.color("  YOUR SHOT, DEVIN. Enter a target on Cursor waters (e.g. F5), or 'q' to resign.", art.ORANGE + art.BOLD)
+                message=art.color(f"  {art.POINTER} YOUR SHOT, DEVIN. Aim at Cursor waters (e.g. F5), or 'q' to resign.", art.ORANGE + art.BOLD)
             )
             raw = self.ask(art.color("  Target: ", art.ORANGE))
             if raw.strip().lower() in {"q", "quit", "exit"}:
-                raise SystemExit(art.color("\n  Devin resigns. Cursor takes the trophy.\n", art.WHITE))
+                raise SystemExit(art.color("\n  Devin resigns. Cursor takes the trophy.\n", art.INK))
             try:
                 row, col = parse_coord(raw)
             except ValueError as exc:
@@ -102,7 +107,7 @@ class Game:
 
     def ai_turn(self) -> None:
         row, col = self.ai_targets.pop()
-        self.screen.frame(message=art.color(f"  Cursor is targeting {format_coord(row, col)}...", art.WHITE + art.BOLD))
+        self.screen.frame(message=art.color(f"  Cursor is targeting {format_coord(row, col)}...", art.INK + art.BOLD))
         self.screen.pause(0.5)
         self.resolve_shot("cursor", row, col)
 
@@ -144,21 +149,25 @@ class Game:
 
     def finish(self, winner: str) -> None:
         if winner == "devin":
-            extra = [art.color(line, art.ORANGE) for line in art.OTTER_BIG] + [
-                "",
-                art.color("   🦦  F I N A L :  D E V I N   W I N S  🦦", art.ORANGE + art.BOLD),
-            ]
+            extra = panel(
+                [art.color(line, art.ORANGE) for line in art.OTTER_BIG]
+                + ["", art.color("  🦦  F I N A L :  D E V I N   W I N S  🦦", art.ORANGE + art.BOLD)],
+                title="RESULTS",
+                accent=art.ORANGE,
+            )
         else:
-            extra = [art.color(line, art.WHITE) for line in art.CURSOR_LOGO] + [
-                "",
-                art.color("   ◆  F I N A L :  C U R S O R   W I N S  ◆", art.WHITE + art.BOLD),
-            ]
+            extra = panel(
+                [art.color(line, art.INK) for line in art.CURSOR_LOGO]
+                + ["", art.color("  ◆  F I N A L :  C U R S O R   W I N S  ◆", art.INK + art.BOLD)],
+                title="RESULTS",
+                accent=art.INK,
+            )
         self.screen.frame(
             message=art.color(
                 f"  Game over in {self.stats['turn']} innings.  "
                 f"Devin {self.stats['devin_hits']}H/{self.stats['devin_misses']}M · "
                 f"Cursor {self.stats['cursor_hits']}H/{self.stats['cursor_misses']}M",
-                art.YELLOW,
+                art.WII_BLUE,
             ),
             extra=extra,
         )

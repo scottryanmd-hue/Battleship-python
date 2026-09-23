@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from . import art
 from .board import EXPLOSION_THRESHOLD, SIZE, Ship, format_coord
-from .render import Screen
+from .render import Screen, panel
 
 TRAIL_CHARS = ["˙", "°", "∘", "·"]
 
@@ -12,9 +12,11 @@ TRAIL_CHARS = ["˙", "°", "∘", "·"]
 def _launch_lines(team: str) -> list[str]:
     if team == "devin":
         ship = art.ship_broadside("U.S.S. DEVIN", "DEVIN", art.COGNITION_GLYPH, art.ORANGE)
-        return ship + [art.color("   ⬢➤  launching cognition missile...", art.ORANGE + art.BOLD)]
-    ship = art.ship_broadside("C.S.S. CURSOR", "CURSOR", art.CURSOR_GLYPH, art.WHITE)
-    return ship + [art.color("   ◆➤  Cursor returns fire...", art.WHITE + art.BOLD)]
+        body = ship + [art.color("   ⬢➤  launching cognition missile...", art.ORANGE + art.BOLD)]
+        return panel(body, title="LAUNCH", accent=art.ORANGE, width=30)
+    ship = art.ship_broadside("C.S.S. CURSOR", "CURSOR", art.CURSOR_GLYPH, art.INK)
+    body = ship + [art.color("   ◆➤  Cursor returns fire...", art.INK + art.BOLD)]
+    return panel(body, title="LAUNCH", accent=art.INK, width=30)
 
 
 def _overlay_kwargs(team: str, overlay: dict) -> dict:
@@ -49,7 +51,7 @@ def fly_missile(screen: Screen, team: str, row: int, col: int) -> None:
             if i - t >= 0:
                 overlay[(row, path[i - t])] = art.color(trail_char, art.GREY if t < 3 else art.DARK)
         screen.frame(
-            message=art.color(f"  ⇢ incoming: {format_coord(row, c)}", art.GREY),
+            message=art.color(f"  ⇢ incoming: {format_coord(row, c)}", art.WII_BLUE),
             extra=launch,
             **_overlay_kwargs(team, overlay),
         )
@@ -57,9 +59,9 @@ def fly_missile(screen: Screen, team: str, row: int, col: int) -> None:
 
 
 def splash(screen: Screen, team: str, row: int, col: int) -> None:
-    for glyph, code in ((" ", art.BLUE), ("◌", art.BLUE), ("o", art.BLUE)):
+    for glyph, code in ((" ", art.SKY), ("◌", art.SKY), ("o", art.WII_BLUE)):
         screen.frame(
-            message=art.color("  SPLASH! Missile buried itself in open water. MISS.", art.BLUE + art.BOLD),
+            message=art.color("  SPLASH! Missile buried itself in open water. MISS.", art.WII_BLUE + art.BOLD),
             **_overlay_kwargs(team, {(row, col): art.color(glyph, code)}),
         )
         screen.pause(0.12)
@@ -87,7 +89,7 @@ def explode(screen: Screen, team: str, ship: Ship, exploded: bool) -> None:
     for frame in art.EXPLOSION_FRAMES:
         screen.frame(
             message=art.color(headline, art.RED + art.BOLD),
-            extra=[art.color(line, art.YELLOW) for line in frame],
+            extra=panel([art.color(line, art.YELLOW) for line in frame], title="BOOM", accent=art.RED),
             **_overlay_kwargs(team, flash),
         )
         screen.pause(0.22)
@@ -99,10 +101,15 @@ def otter_finisher(screen: Screen, ship: Ship) -> None:
     for step in range(0, width, 6):
         screen.frame(
             message=art.color("  🦦  INCOMING OTTER  🦦", art.ORANGE + art.BOLD),
-            extra=[
-                art.color(" " * step + "🦦💨", art.ORANGE),
-                art.color(" " * max(0, step - 2) + "  ⬢ ⬢ ⬢", art.GREY),
-            ],
+            extra=panel(
+                [
+                    art.color(" " * step + "🦦💨", art.ORANGE),
+                    art.color(" " * max(0, step - 2) + "  ⬢ ⬢ ⬢", art.SOFT),
+                ],
+                title="OTTER CHANNEL",
+                accent=art.ORANGE,
+                width=width + 6,
+            ),
             overlay_ai={cell: art.color("✹", art.YELLOW) for cell in ship.cells},
         )
         screen.pause(0.08)
@@ -112,8 +119,12 @@ def otter_finisher(screen: Screen, ship: Ship) -> None:
             f"  🦦 FINAL BLOW! The Devin otter sinks the Cursor {ship.name}! 🦦",
             art.ORANGE + art.BOLD,
         ),
-        extra=[art.color(line, art.ORANGE) for line in art.OTTER_BIG]
-        + ["", art.color("        ⬢  C O G N I T I O N   S T R I K E  ⬢", art.ORANGE + art.BOLD)],
+        extra=panel(
+            [art.color(line, art.ORANGE) for line in art.OTTER_BIG]
+            + ["", art.color("     ⬢  C O G N I T I O N   S T R I K E  ⬢", art.ORANGE + art.BOLD)],
+            title="OTTER CHANNEL",
+            accent=art.ORANGE,
+        ),
         overlay_ai={cell: art.color("#", art.DARK) for cell in ship.cells},
     )
     screen.pause(1.6)
@@ -121,8 +132,12 @@ def otter_finisher(screen: Screen, ship: Ship) -> None:
 
 def cursor_finisher(screen: Screen, ship: Ship) -> None:
     screen.frame(
-        message=art.color(f"  ◆ Cursor sinks the Devin {ship.name}. ◆", art.WHITE + art.BOLD),
-        extra=[art.color(line, art.WHITE) for line in art.CURSOR_LOGO],
+        message=art.color(f"  ◆ Cursor sinks the Devin {ship.name}. ◆", art.INK + art.BOLD),
+        extra=panel(
+            [art.color(line, art.INK) for line in art.CURSOR_LOGO],
+            title="CURSOR CHANNEL",
+            accent=art.INK,
+        ),
         overlay_player={cell: art.color("#", art.DARK) for cell in ship.cells},
     )
     screen.pause(1.4)

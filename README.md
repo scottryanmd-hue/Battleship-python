@@ -2,7 +2,11 @@
 
 A terminal Battleship game where **HOME = Devin** (cognition-logo missiles, otter finishers) plays
 **AWAY = Cursor** (a random-firing AI). Ships, shots and sinkings are animated right on the 10×10
-grid, and a high-school-gym scoreboard tracks hits, misses and ships sunk.
+grid, and a Wii-style scoreboard tracks hits, misses and ships sunk.
+
+The whole UI is dressed as a Nintendo Wii console: a blue channel bar with a clock, glossy white
+rounded panels, a Wii Menu channel-select intro with a hand pointer and Wiimote, Mii-style team
+portraits, Wii Sports meters and a Wii Menu button tray along the bottom.
 
 ## Run it
 
@@ -40,27 +44,31 @@ python3 -m battleship --seed 42     # reproducible ship placement and AI shots
 - **Three cognition missiles detonate a hull.** The ship explodes, and then the Devin otter 🦦
   flies in to deliver the final blow and sink the Cursor ship. (Two-cell Destroyers go down on
   their second hit.)
-- The scoreboard shows the otter, HOME `DEVIN` vs AWAY `CURSOR`, the sunk-ship score, per-side
-  hits/misses and remaining fleet size.
+- The scoreboard shows the Devin and Cursor Miis, HOME vs AWAY, the sunk-ship score, the round
+  number, and meters for hits, misses, ships sunk and remaining fleet.
 
 ```
-╔═══════════════════════════════════════════════════════════════════════╗
-║  🦦  D E V I N   F I E L D H O U S E   ·   S C O R E B O A R D  🦦    ║
-╠═══════════════════╦═══════════════════════════╦═══════════════════════╣
-║       HOME        ║          ⬢ ⬡ ⬢            ║         AWAY          ║
-║    🦦 DEVIN 🦦    ║         3  ―  1           ║      ◆ CURSOR ◆       ║
-╠═══════════════════╬═══════════════════════════╬═══════════════════════╣
-║  HITS       11    ║     INNING (TURN)   9     ║  HITS        4        ║
-║  MISSES      7    ║  ⬢ COGNITION MISSILES ⬢   ║  MISSES      5        ║
-║  SHIPS SUNK  3    ║     FLEET 4 ⬢  vs  ◆ 2    ║  SHIPS SUNK  1        ║
-╚═══════════════════╩═══════════════════════════╩═══════════════════════╝
+ 🦦  B A T T L E S H I P   C H A N N E L    ⬢ vs ◆                 Wed  21:23
+╭─ SCOREBOARD ───────────────────────────────────────────────────────────────╮
+│  ╭─────╮              H O M E                A W A Y              ╭─────╮  │
+│  │ ◕ ◕ │                         3  -  1                          │ ● ● │  │
+│  │  ᵕ  │                         ROUND 9                          │  ─  │  │
+│  ╰─────╯                                                          ╰─────╯  │
+│ 🦦 DEVIN                                                         CURSOR ◆  │
+│                                                                            │
+│                11 ▰▰▰▰▰▰▱▱▱▱       HITS       ▰▰▱▱▱▱▱▱▱▱ 4                 │
+│                 7 ▰▰▰▰▱▱▱▱▱▱      MISSES      ▰▰▰▱▱▱▱▱▱▱ 5                 │
+│                 3 ▰▰▰▰▰▰▱▱▱▱    SHIPS SUNK    ▰▰▱▱▱▱▱▱▱▱ 1                 │
+│                 4 ▰▰▰▰▰▰▰▰▱▱    FLEET LEFT    ▰▰▰▰▱▱▱▱▱▱ 2                 │
+╰────────────────────────────────────────────────────────────────────────────╯
+ ( Wii )  ( Mii )  ( SD )  ☞ ⬢ Devin   ◆ Cursor   ✸ hit   o miss   # sunk
 ```
 
 ## Board legend
 
 | Symbol | Meaning |
 | --- | --- |
-| `~` | unexplored water |
+| `·` | unexplored water |
 | `⬢` | your (Devin) ship |
 | `◆` | a Cursor ship (only shown on your own grid legend; enemy ships stay hidden) |
 | `o` | miss |
@@ -72,7 +80,7 @@ python3 -m battleship --seed 42     # reproducible ship placement and AI shots
 ```
 battleship/
   board.py    grid, ship placement, firing rules, 3-missile detonation
-  render.py   board drawing, scoreboard, side-by-side layout
+  render.py   Wii panels/channel bar, board drawing, scoreboard, side-by-side layout
   effects.py  missile flight + smoke, explosions, otter finisher
   game.py     placement UI, turn loop, AI, endgame
   __main__.py CLI entry point

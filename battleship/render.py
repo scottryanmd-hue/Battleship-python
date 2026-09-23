@@ -1,4 +1,4 @@
-"""Everything that gets drawn to the terminal."""
+"""Everything that gets drawn to the terminal, styled like a Wii channel."""
 
 from __future__ import annotations
 
@@ -6,53 +6,19 @@ import re
 import sys
 import time
 import unicodedata
+from datetime import datetime
 
 from . import art
 from .board import SIZE, LETTERS, Board
 
 CELL = 3
+BOARD_W = SIZE * CELL + 3
+ARENA_W = 78
 
 
 def clear() -> None:
     sys.stdout.write("\033[2J\033[H")
     sys.stdout.flush()
-
-
-def cell_text(board: Board, row: int, col: int, reveal: bool, team_glyph: str, accent: str) -> str:
-    mark = board.grid[row][col]
-    if mark == Board.SUNK:
-        return art.color("#", art.DARK)
-    if mark == Board.HIT:
-        return art.color("✸", art.RED + art.BOLD)
-    if mark == Board.MISS:
-        return art.color("o", art.BLUE)
-    if reveal and board.ship_at(row, col) is not None:
-        return art.color(team_glyph, accent)
-    return art.color(art.WATER, art.NAVY)
-
-
-def render_board(
-    board: Board,
-    *,
-    title: str,
-    reveal: bool,
-    team_glyph: str,
-    accent: str,
-    overlay: dict[tuple[int, int], str] | None = None,
-) -> list[str]:
-    overlay = overlay or {}
-    width = SIZE * CELL + 3
-    lines = [art.color(f"{title:^{width}}", accent + art.BOLD)]
-    header = "   " + "".join(f"{n:^{CELL}}" for n in range(1, SIZE + 1))
-    lines.append(art.color(header, art.GREY))
-    for r in range(SIZE):
-        row_cells = []
-        for c in range(SIZE):
-            glyph = overlay.get((r, c)) or cell_text(board, r, c, reveal, team_glyph, accent)
-            lead = (CELL - 1) // 2
-            row_cells.append(" " * lead + glyph + " " * (CELL - 1 - lead))
-        lines.append(art.color(f" {LETTERS[r]} ", art.GREY) + "".join(row_cells))
-    return lines
 
 
 def display_width(text: str) -> int:
@@ -68,6 +34,13 @@ def display_width(text: str) -> int:
     return total
 
 
+ANSI_RE = re.compile(r"\x1b\[[0-9;]*m")
+
+
+def visible_len(text: str) -> int:
+    return display_width(ANSI_RE.sub("", text))
+
+
 def pad(text: str, width: int, align: str = "^") -> str:
     slack = max(0, width - display_width(text))
     if align == "<":
@@ -78,14 +51,134 @@ def pad(text: str, width: int, align: str = "^") -> str:
     return " " * left + text + " " * (slack - left)
 
 
-ANSI_RE = re.compile(r"\x1b\[[0-9;]*m")
+def tint(text: str, bg: str) -> str:
+    """Keep `bg` behind a line whose inner colours reset as they finish."""
+    return bg + text.replace(art.RESET, art.RESET + bg) + art.RESET
 
 
-def visible_len(text: str) -> int:
-    return display_width(ANSI_RE.sub("", text))
+def fill(text: str, width: int, bg: str, align: str = "<") -> str:
+    slack = max(0, width - visible_len(text))
+    if align == "^":
+        left = slack // 2
+        text = " " * left + text + " " * (slack - left)
+    elif align == ">":
+        text = " " * slack + text
+    else:
+        text = text + " " * slack
+    return tint(text, bg)
 
 
-def side_by_side(left: list[str], right: list[str], gap: int = 6) -> list[str]:
+def panel(
+    lines: list[str],
+    *,
+    title: str = "",
+    accent: str = art.WII_BLUE,
+    bg: str = art.BG_WHITE,
+    width: int | None = None,
+) -> list[str]:
+    """A glossy rounded Wii tile wrapped around some content."""
+    inner = width or max([visible_len(l) for l in lines] + [visible_len(title) + 6])
+    inner += 2
+    edge = accent + bg
+
+    if title:
+        head = f"─ {title} "
+        top = "╭" + head + "─" * max(0, inner - visible_len(head)) + "╮"
+    else:
+        top = "╭" + "─" * inner + "╮"
+    out = [tint(art.color(top, edge), bg)]
+    for line in lines:
+        body = fill(" " + line, inner, bg)
+        out.append(tint(art.color("│", edge) + body + art.color("│", edge), bg))
+    out.append(tint(art.color("╰" + "─" * inner + "╯", edge), bg))
+    return out
+
+
+def header() -> list[str]:
+    """The blue channel bar that tops every Wii screen."""
+    clock = datetime.now().strftime("%a  %H:%M")
+    left = " 🦦  B A T T L E S H I P   C H A N N E L    ⬢ vs ◆"
+    gap = max(1, ARENA_W - display_width(left) - display_width(clock) - 1)
+    line = fill(
+        art.color(left, art.BOLD) + " " * gap + art.color(clock + " ", art.SILVER),
+        ARENA_W,
+        art.BG_BLUE,
+    )
+    rule = fill("", ARENA_W, art.BG_BLUE)
+    return [rule, line, rule]
+
+
+def footer(hint: str = "") -> list[str]:
+    """The Wii Menu tray: rounded buttons and a pointer hint."""
+    buttons = "  ".join(art.color(f"( {b} )", art.INK) for b in ("Wii", "Mii", "SD"))
+    text = " " + buttons + "  " + art.color(f"{art.POINTER} {hint}" if hint else "", art.INK)
+    return [fill(text, ARENA_W, art.BG_PANEL)]
+
+
+def channel_tile(lines: list[str], *, accent: str, selected: bool) -> list[str]:
+    body = [pad(l, 22) for l in lines]
+    if selected:
+        body = [art.color(l, accent + art.BOLD) for l in body]
+    else:
+        body = [art.color(l, art.SOFT) for l in body]
+    return panel(body, accent=accent if selected else art.SILVER, width=22)
+
+
+def menu_screen(step: int) -> list[str]:
+    """The Wii Menu: two channels and a hand pointer drifting between them."""
+    devin = channel_tile(art.CHANNEL_DEVIN, accent=art.ORANGE, selected=step % 2 == 0)
+    cursor = channel_tile(art.CHANNEL_CURSOR, accent=art.INK, selected=step % 2 == 1)
+    pointer_col = 6 if step % 2 == 0 else 36
+    out = header()
+    out.append(fill("", ARENA_W, art.BG_WHITE))
+    out += [
+        fill(l, ARENA_W, art.BG_WHITE)
+        for l in side_by_side(devin, cursor, gap=4)
+    ]
+    out.append(fill(" " * pointer_col + art.color("👆", art.ORANGE), ARENA_W, art.BG_WHITE))
+    out.append(fill("", ARENA_W, art.BG_WHITE))
+    for line in art.WIIMOTE:
+        out.append(fill("   " + art.color(line, art.INK), ARENA_W, art.BG_WHITE))
+    out.append(fill("", ARENA_W, art.BG_WHITE))
+    return out
+
+
+def cell_text(board: Board, row: int, col: int, reveal: bool, team_glyph: str, accent: str) -> str:
+    mark = board.grid[row][col]
+    if mark == Board.SUNK:
+        return art.color("#", art.DARK)
+    if mark == Board.HIT:
+        return art.color("✸", art.RED + art.BOLD)
+    if mark == Board.MISS:
+        return art.color("o", art.WII_BLUE)
+    if reveal and board.ship_at(row, col) is not None:
+        return art.color(team_glyph, accent)
+    return art.color(art.WATER, art.NAVY)
+
+
+def render_board(
+    board: Board,
+    *,
+    title: str,
+    reveal: bool,
+    team_glyph: str,
+    accent: str,
+    overlay: dict[tuple[int, int], str] | None = None,
+) -> list[str]:
+    overlay = overlay or {}
+    header_row = "   " + "".join(f"{n:^{CELL}}" for n in range(1, SIZE + 1))
+    rows = [tint(art.color(header_row, art.INK), art.BG_SEA)]
+    for r in range(SIZE):
+        cells = []
+        for c in range(SIZE):
+            glyph = overlay.get((r, c)) or cell_text(board, r, c, reveal, team_glyph, accent)
+            lead = (CELL - 1) // 2
+            cells.append(" " * lead + glyph + " " * (CELL - 1 - lead))
+        rows.append(tint(art.color(f" {LETTERS[r]} ", art.INK) + "".join(cells), art.BG_SEA))
+    return panel(rows, title=title, accent=accent, width=BOARD_W)
+
+
+def side_by_side(left: list[str], right: list[str], gap: int = 4) -> list[str]:
     width = max((visible_len(l) for l in left), default=0)
     height = max(len(left), len(right))
     left = left + [""] * (height - len(left))
@@ -93,78 +186,67 @@ def side_by_side(left: list[str], right: list[str], gap: int = 6) -> list[str]:
     return [l + " " * (width - visible_len(l) + gap) + r for l, r in zip(left, right)]
 
 
+def meter(value: int, total: int, code: str, width: int = 10) -> str:
+    filled = 0 if total <= 0 else round(width * value / total)
+    return art.color("▰" * filled, code) + art.color("▱" * (width - filled), art.SILVER)
+
+
 def scoreboard(stats: dict) -> list[str]:
-    """A high-school-gym style scoreboard with the Devin otter up top."""
+    """Wii Sports style: two Miis, one big score, soft meters underneath."""
     a = art
-    o = a.ORANGE
-    W1, W2, W3 = 19, 27, 23
-    bar = a.color("║", o)
+    devin = [a.color(l, a.ORANGE) for l in a.MII_DEVIN]
+    cursor = [a.color(l, a.INK) for l in a.MII_CURSOR]
+    score = f"{stats['devin_sunk']}  -  {stats['cursor_sunk']}"
+    fleet = 5
 
-    def row(c1: str, c2: str, c3: str, k1: str, k2: str, k3: str) -> str:
-        return (
-            bar
-            + a.color(pad(c1, W1), k1)
-            + bar
-            + a.color(pad(c2, W2), k2)
-            + bar
-            + a.color(pad(c3, W3), k3)
-            + bar
-        )
-
-    return [
-        a.color("╔" + "═" * (W1 + W2 + W3 + 2) + "╗", o),
-        bar
-        + a.color(pad("🦦  D E V I N   F I E L D H O U S E   ·   S C O R E B O A R D  🦦", W1 + W2 + W3 + 2), a.YELLOW + a.BOLD)
-        + bar,
-        a.color("╠" + "═" * W1 + "╦" + "═" * W2 + "╦" + "═" * W3 + "╣", o),
-        row("HOME", "⬢ ⬡ ⬢", "AWAY", a.WHITE + a.BOLD, a.GREY, a.WHITE + a.BOLD),
-        row(
-            "🦦 DEVIN 🦦",
-            f"{stats['devin_sunk']}  ―  {stats['cursor_sunk']}",
-            "◆ CURSOR ◆",
-            a.ORANGE + a.BOLD,
-            a.RED + a.BOLD,
-            a.WHITE + a.BOLD,
-        ),
-        a.color("╠" + "═" * W1 + "╬" + "═" * W2 + "╬" + "═" * W3 + "╣", o),
-        row(
-            f"HITS       {stats['devin_hits']:>3}",
-            f"INNING (TURN) {stats['turn']:>3}",
-            f"HITS       {stats['cursor_hits']:>3}",
-            a.YELLOW,
-            a.GREEN,
-            a.YELLOW,
-        ),
-        row(
-            f"MISSES     {stats['devin_misses']:>3}",
-            "⬢ COGNITION MISSILES ⬢",
-            f"MISSES     {stats['cursor_misses']:>3}",
-            a.BLUE,
-            a.ORANGE,
-            a.BLUE,
-        ),
-        row(
-            f"SHIPS SUNK {stats['devin_sunk']:>3}",
-            f"FLEET {stats['devin_alive']} ⬢  vs  ◆ {stats['cursor_alive']}",
-            f"SHIPS SUNK {stats['cursor_sunk']:>3}",
-            a.RED,
-            a.WHITE,
-            a.RED,
-        ),
-        a.color("╚" + "═" * W1 + "╩" + "═" * W2 + "╩" + "═" * W3 + "╝", o),
+    mid = ARENA_W - 4 - 2 * 9 - 4
+    middle = [
+        a.color(pad("H O M E                A W A Y", mid), a.SOFT),
+        a.color(pad(score, mid), a.WII_BLUE + a.BOLD),
+        a.color(pad(f"ROUND {stats['turn']}", mid), a.SOFT),
     ]
+    top = [
+        f"{devin[i]}  {middle[i] if i < len(middle) else pad('', mid)}  {cursor[i]}"
+        for i in range(4)
+    ]
+    names = (
+        a.color(pad("🦦 DEVIN", 9), a.ORANGE + a.BOLD)
+        + "  "
+        + pad("", mid)
+        + "  "
+        + a.color(pad("CURSOR ◆", 9), a.INK + a.BOLD)
+    )
+
+    def stat_row(label: str, dv: int, cv: int, code: str, total: int) -> str:
+        row = (
+            a.color(f"{dv:>3} ", code)
+            + meter(dv, total, code)
+            + a.color(pad(label, 18), a.SOFT)
+            + meter(cv, total, code)
+            + a.color(f" {cv:<3}", code)
+        )
+        return " " * max(0, (ARENA_W - 4 - visible_len(row)) // 2) + row
+
+    shots = max(1, stats["devin_hits"] + stats["devin_misses"], stats["cursor_hits"] + stats["cursor_misses"])
+    body = top + [names, ""] + [
+        stat_row("HITS", stats["devin_hits"], stats["cursor_hits"], a.RED, shots),
+        stat_row("MISSES", stats["devin_misses"], stats["cursor_misses"], a.WII_BLUE, shots),
+        stat_row("SHIPS SUNK", stats["devin_sunk"], stats["cursor_sunk"], a.YELLOW, fleet),
+        stat_row("FLEET LEFT", stats["devin_alive"], stats["cursor_alive"], a.GREEN, fleet),
+    ]
+    return panel(body, title="SCOREBOARD", accent=art.WII_BLUE, width=ARENA_W - 4)
 
 
 def fleet_status(board: Board, label: str, accent: str) -> list[str]:
-    lines = [art.color(f"{label} FLEET", accent + art.BOLD)]
+    lines = []
     for ship in board.ships:
         if ship.sunk:
             bar = art.color("SUNK 💀", art.DARK)
         else:
             dots = "".join("✸" if cell in ship.hits else "▪" for cell in ship.cells)
             bar = art.color(dots, art.RED if ship.hits else accent)
-        lines.append(f"  {ship.name:<11} {bar}")
-    return lines
+        lines.append(art.color(f"{ship.name:<11}", art.INK) + " " + bar)
+    return panel(lines, title=f"{label} FLEET", accent=accent, width=BOARD_W)
 
 
 class Screen:
@@ -189,9 +271,7 @@ class Screen:
         extra: list[str] | None = None,
     ) -> None:
         clear()
-        out = [art.banner(), ""]
-        out += scoreboard(self.stats)
-        out.append("")
+        body = scoreboard(self.stats)
         left = render_board(
             self.player_board,
             title="HOME · DEVIN WATERS",
@@ -205,20 +285,18 @@ class Screen:
             title="AWAY · CURSOR WATERS",
             reveal=False,
             team_glyph=art.CURSOR_GLYPH,
-            accent=art.WHITE,
+            accent=art.INK,
             overlay=overlay_ai,
         )
-        out += side_by_side(left, right)
-        out.append("")
-        out += side_by_side(
+        body += side_by_side(left, right)
+        body += side_by_side(
             fleet_status(self.player_board, "DEVIN", art.ORANGE),
-            fleet_status(self.ai_board, "CURSOR", art.WHITE),
+            fleet_status(self.ai_board, "CURSOR", art.INK),
         )
-        out.append("")
-        out.append(art.color("  ⬢ = Devin ship   ◆ = Cursor ship   ✸ = hit   o = miss   # = sunk", art.DIM))
         if extra:
-            out.append("")
-            out += extra
+            body += extra
+        out = header() + [fill(line, ARENA_W, art.BG_WHITE) for line in body]
+        out += footer("⬢ Devin   ◆ Cursor   ✸ hit   o miss   # sunk")
         if message:
             out.append("")
             out.append(message)

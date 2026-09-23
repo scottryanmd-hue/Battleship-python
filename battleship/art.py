@@ -1,38 +1,76 @@
-"""ASCII / emoji art for the Devin vs Cursor battleship arena."""
+"""Wii-console flavoured art for the Devin vs Cursor Battleship Channel."""
 
 RESET = "\033[0m"
 BOLD = "\033[1m"
 DIM = "\033[2m"
 
-ORANGE = "\033[38;5;208m"
-WHITE = "\033[97m"
-GREY = "\033[38;5;245m"
-DARK = "\033[38;5;240m"
-RED = "\033[38;5;196m"
-YELLOW = "\033[38;5;226m"
-BLUE = "\033[38;5;39m"
-NAVY = "\033[38;5;26m"
-GREEN = "\033[38;5;46m"
-BLACK_ON_AMBER = "\033[48;5;236m\033[38;5;208m"
+# Wii palette: glossy white plastic, silver bevels, channel blue.
+INK = "\033[38;5;238m"
+SOFT = "\033[38;5;245m"
+SILVER = "\033[38;5;250m"
+WII_BLUE = "\033[38;5;32m"
+SKY = "\033[38;5;39m"
+MINT = "\033[38;5;30m"
+ORANGE = "\033[38;5;166m"
+RED = "\033[38;5;160m"
+YELLOW = "\033[38;5;172m"
+GREEN = "\033[38;5;28m"
+
+BG_WHITE = "\033[48;5;255m"
+BG_PANEL = "\033[48;5;253m"
+BG_SEA = "\033[48;5;152m"
+BG_BLUE = "\033[48;5;32m"
+
+# Aliases so the rest of the game keeps its vocabulary on the new palette.
+WHITE = INK          # Cursor's accent reads as dark slate on a white console
+GREY = SOFT
+DARK = "\033[38;5;243m"
+BLUE = WII_BLUE
+NAVY = "\033[38;5;74m"
 
 COGNITION_GLYPH = "⬢"
 CURSOR_GLYPH = "◆"
+POINTER = "☞"
+WATER = "·"
 SMOKE = ["·", "∘", "°", "˙"]
 
-COGNITION_LOGO = [
-    "  ⬢⬡   ⬡⬢  ",
-    "   ⬢⬡⬢⬡⬢   ",
-    "  ⬢⬡   ⬡⬢  ",
-]
-
-CURSOR_LOGO = [
-    "   ◢◣   ",
-    "  ◢██◣  ",
-    " ◢████◣ ",
-    "◢██████◣",
-]
-
 OTTER_SMALL = "🦦"
+
+# Mii-style channel portraits.
+MII_DEVIN = [
+    " ╭─────╮ ",
+    " │ ◕ ◕ │ ",
+    " │  ᵕ  │ ",
+    " ╰─────╯ ",
+]
+
+MII_CURSOR = [
+    " ╭─────╮ ",
+    " │ ● ● │ ",
+    " │  ─  │ ",
+    " ╰─────╯ ",
+]
+
+WIIMOTE = [
+    "╭───╮",
+    "│ ● │",
+    "│ ✛ │",
+    "│ A │",
+    "│ B │",
+    "╰───╯",
+]
+
+CHANNEL_DEVIN = [
+    "🦦  D E V I N",
+    "cognition missiles",
+    "otter finishers",
+]
+
+CHANNEL_CURSOR = [
+    "◆  C U R S O R",
+    "cursor missiles",
+    "no otters",
+]
 
 OTTER_BIG = [
     "            .-\"\"\"-.            ",
@@ -51,6 +89,13 @@ OTTER_BIG = [
     "            //   \\\\            ",
     "           (_)   (_)           ",
     "      D E V I N   O T T E R    ",
+]
+
+CURSOR_LOGO = [
+    "   ◢◣   ",
+    "  ◢██◣  ",
+    " ◢████◣ ",
+    "◢██████◣",
 ]
 
 EXPLOSION_FRAMES = [
@@ -77,24 +122,9 @@ EXPLOSION_FRAMES = [
     ],
 ]
 
-WATER = "~"
-
 
 def color(text: str, code: str) -> str:
     return f"{code}{text}{RESET}"
-
-
-def banner() -> str:
-    """Logos stay outside the box so ambiguous-width glyphs can't skew the border."""
-    title = "B A T T L E S H I P :  D E V I N   v s   C U R S O R"
-    inner = len(title) + 8
-    lines = [
-        "╔" + "═" * inner + "╗",
-        "║" + title.center(inner) + "║",
-        "╚" + "═" * inner + "╝",
-    ]
-    crest = f"{COGNITION_GLYPH} HOME · DEVIN      AWAY · CURSOR {CURSOR_GLYPH}".center(inner + 2)
-    return "\n".join(color(line, ORANGE + BOLD) for line in lines) + "\n" + color(crest, GREY)
 
 
 def ship_broadside(name: str, label: str, glyph: str, accent: str) -> list[str]:
@@ -105,5 +135,5 @@ def ship_broadside(name: str, label: str, glyph: str, accent: str) -> list[str]:
         color("     ___|___     ", accent),
         color(f"  __/{hull:^11}\\__  ", accent),
         color("  \\_______________/  ", accent),
-        color(f"   {name:^17}", DIM),
+        color(f"   {name:^17}", SOFT),
     ]
