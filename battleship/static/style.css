@@ -226,8 +226,59 @@ body {
   font-size: 7rem; pointer-events: none; z-index: 20;
 }
 .finisher.show { display: grid; }
+.finisher.show.party { background: radial-gradient(circle at 50% 55%, rgba(10,40,70,0.34), rgba(10,30,60,0.6)); }
 .finisher .otter { animation: flyin 1.6s ease-in-out forwards; }
 .finisher .cursor-logo { animation: flyin-left 1.6s ease-in-out forwards; }
+
+/* ---- otter victory party ---- */
+.party-stage { display: grid; justify-items: center; gap: 12px; }
+.party-stage .otter-pic {
+  width: min(38vh, 300px); height: auto;
+  filter: drop-shadow(0 16px 24px rgba(0, 0, 0, 0.45));
+  animation: otter-arrive 0.55s cubic-bezier(0.2, 1.5, 0.4, 1) forwards,
+             otter-cheer 0.62s ease-in-out 0.55s 3;
+}
+.party-stage .party-banner {
+  font-family: "Trebuchet MS", sans-serif; font-size: 1.7rem; font-weight: 700;
+  letter-spacing: 0.16em; color: #fff; text-transform: uppercase;
+  padding: 10px 26px; border-radius: 999px;
+  background: linear-gradient(180deg, var(--devin) , #d2731a);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.35), inset 0 2px 0 rgba(255,255,255,0.45);
+  animation: banner-pop 0.5s ease-out 0.25s backwards;
+}
+@keyframes otter-arrive {
+  0% { transform: translateY(70vh) scale(0.4) rotate(-18deg); opacity: 0; }
+  100% { transform: translateY(0) scale(1) rotate(0deg); opacity: 1; }
+}
+@keyframes otter-cheer {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  30% { transform: translateY(-26px) rotate(-7deg); }
+  65% { transform: translateY(-6px) rotate(6deg); }
+}
+@keyframes banner-pop {
+  0% { transform: scale(0.4); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.spark {
+  position: fixed; width: 9px; height: 9px; border-radius: 50%;
+  background: var(--spark, #ffd84d);
+  box-shadow: 0 0 12px 3px var(--spark, #ffd84d);
+  animation: spark-fly var(--life, 1s) ease-out forwards;
+}
+@keyframes spark-fly {
+  0% { transform: translate(0, 0) scale(1); opacity: 1; }
+  70% { opacity: 1; }
+  100% { transform: translate(var(--dx), calc(var(--dy) + 40px)) scale(0.35); opacity: 0; }
+}
+.rocket {
+  position: fixed; width: 5px; height: 16px; border-radius: 3px;
+  background: linear-gradient(180deg, #fff, rgba(255,255,255,0));
+  animation: rocket-rise var(--rise, 0.45s) ease-out forwards;
+}
+@keyframes rocket-rise {
+  0% { transform: translateY(0); opacity: 0.9; }
+  100% { transform: translateY(var(--climb)); opacity: 0.1; }
+}
 @keyframes flyin {
   0% { transform: translateX(-120vw) rotate(-25deg) scale(0.6); }
   55% { transform: translateX(0) rotate(0) scale(1.25); }

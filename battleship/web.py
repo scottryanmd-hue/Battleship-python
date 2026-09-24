@@ -17,7 +17,12 @@ from .board import parse_coord
 from .session import Session
 
 STATIC = Path(__file__).parent / "static"
-CONTENT_TYPES = {".html": "text/html", ".css": "text/css", ".js": "application/javascript"}
+CONTENT_TYPES = {
+    ".html": "text/html",
+    ".css": "text/css",
+    ".js": "application/javascript",
+    ".png": "image/png",
+}
 
 
 class Handler(BaseHTTPRequestHandler):

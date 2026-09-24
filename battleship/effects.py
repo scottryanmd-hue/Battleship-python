@@ -127,7 +127,36 @@ def otter_finisher(screen: Screen, ship: Ship) -> None:
         ),
         overlay_ai={cell: art.color("#", art.DARK) for cell in ship.cells},
     )
-    screen.pause(1.6)
+    screen.pause(1.0)
+    _fireworks(screen, ship)
+
+
+FIREWORK_FRAMES = [
+    ["      ✦        ·        ✧", "   ·     ✺     ✦     ·   ", "        ✧      ·         "],
+    ["   ✺   ·   ✦   ·   ✺   ✧ ", " ✧    ✦   ✹ ✹ ✹   ✦    · ", "   ·  ✧    ·    ✧   ·    "],
+    [" ✦  ·  ✧  ✺  ✦  ✧  ·  ✦  ", "✺  ✹   ·  ✦ ✧ ✦  ·   ✹  ✺", " ·   ✦   ✧   ·   ✦   ·   "],
+]
+FIREWORK_COLORS = [art.YELLOW, art.ORANGE, art.RED, art.GREEN, art.WII_BLUE]
+
+
+def _fireworks(screen: Screen, ship: Ship) -> None:
+    """Set off the fireworks while the otter celebrates a sunk Cursor ship."""
+    for step, rows in enumerate(FIREWORK_FRAMES + FIREWORK_FRAMES[::-1]):
+        sky = [art.color(row, FIREWORK_COLORS[(step + i) % len(FIREWORK_COLORS)])
+               for i, row in enumerate(rows)]
+        screen.frame(
+            message=art.color(
+                f"  🎆 The otter celebrates — Cursor's {ship.name} is on the seabed! 🎆",
+                art.ORANGE + art.BOLD,
+            ),
+            extra=panel(
+                sky + [""] + [art.color(line, art.ORANGE) for line in art.OTTER_BIG],
+                title="OTTER CHANNEL",
+                accent=art.ORANGE,
+            ),
+            overlay_ai={cell: art.color("#", art.DARK) for cell in ship.cells},
+        )
+        screen.pause(0.16)
 
 
 def cursor_finisher(screen: Screen, ship: Ship) -> None:

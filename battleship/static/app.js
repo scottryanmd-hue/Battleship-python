@@ -188,15 +188,72 @@ async function boom(team, row, col, glyph, size) {
   node.remove();
 }
 
-async function finisher(team) {
+const SPARK_COLOURS = ["#ffd84d", "#ff8a3d", "#ff5f6d", "#7ce7ff", "#b689ff", "#8dff9e"];
+
+function burst(x, y) {
+  const hue = SPARK_COLOURS[Math.floor(Math.random() * SPARK_COLOURS.length)];
+  const count = 22;
+  const spread = 110 + Math.random() * 80;
+  for (let i = 0; i < count; i++) {
+    const angle = (i / count) * Math.PI * 2 + Math.random() * 0.2;
+    const reach = spread * (0.6 + Math.random() * 0.5);
+    const spark = document.createElement("div");
+    spark.className = "spark";
+    spark.style.left = `${x}px`;
+    spark.style.top = `${y}px`;
+    spark.style.setProperty("--dx", `${Math.cos(angle) * reach}px`);
+    spark.style.setProperty("--dy", `${Math.sin(angle) * reach}px`);
+    spark.style.setProperty("--spark", hue);
+    spark.style.setProperty("--life", `${0.9 + Math.random() * 0.6}s`);
+    document.body.append(spark);
+    setTimeout(() => spark.remove(), 1600);
+  }
+}
+
+function launchFirework() {
+  const x = window.innerWidth * (0.12 + Math.random() * 0.76);
+  const peak = window.innerHeight * (0.12 + Math.random() * 0.3);
+  const climb = window.innerHeight - peak;
+  const rocket = document.createElement("div");
+  rocket.className = "rocket";
+  rocket.style.left = `${x}px`;
+  rocket.style.top = `${window.innerHeight}px`;
+  rocket.style.setProperty("--climb", `${-climb}px`);
+  rocket.style.setProperty("--rise", "0.45s");
+  document.body.append(rocket);
+  setTimeout(() => {
+    rocket.remove();
+    burst(x, peak);
+  }, 450);
+}
+
+async function fireworks(duration = 2600) {
+  const until = Date.now() + duration;
+  while (Date.now() < until) {
+    launchFirework();
+    if (Math.random() < 0.5) launchFirework();
+    await sleep(260);
+  }
+}
+
+async function finisher(team, shipName) {
   const overlay = el("finisher");
-  overlay.innerHTML =
-    team === "devin"
-      ? '<div class="otter">🦦</div>'
-      : '<div class="cursor-logo">◆</div>';
-  overlay.classList.add("show");
-  await sleep(1600);
-  overlay.classList.remove("show");
+  if (team === "devin") {
+    overlay.innerHTML =
+      '<div class="party-stage">' +
+      '<img class="otter-pic" src="otter.png" alt="The Devin otter celebrating">' +
+      `<div class="party-banner">${shipName || "Cursor ship"} sunk!</div>` +
+      "</div>";
+    overlay.classList.add("show", "party");
+    await fireworks(2600);
+    await sleep(300);
+    overlay.classList.remove("show", "party");
+  } else {
+    overlay.innerHTML = '<div class="cursor-logo">◆</div>';
+    overlay.classList.add("show");
+    await sleep(1600);
+    overlay.classList.remove("show");
+  }
 }
 
 async function playEvents(events) {
@@ -208,7 +265,7 @@ async function playEvents(events) {
       await boom(ev.team, ev.row, ev.col, "✸");
     } else {
       await boom(ev.team, ev.row, ev.col, "💥", "2.2rem");
-      await finisher(ev.team);
+      await finisher(ev.team, ev.ship);
     }
   }
 }
