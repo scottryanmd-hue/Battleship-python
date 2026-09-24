@@ -49,7 +49,10 @@ or press **Speak your shot** and say the target:
 
 Voice uses the browser-native `webkitSpeechRecognition` API, so it needs Chrome (or another
 WebKit/Blink browser) and microphone permission — the button explains itself and disables where the
-API is missing, and clicking squares always works. The server binds to `127.0.0.1` only and keeps
+API is missing, and clicking squares always works. Nothing fires unless you order it: a heard
+phrase only launches a missile when it carries a firing verb ("fire", "launch", "target", "hit"…)
+or is nothing but the coordinate, so overheard conversation never shells a square. The transcript
+that triggered each shot is echoed under the mic. The server binds to `127.0.0.1` only and keeps
 one game in memory; `( A ) New game` starts another.
 
 ### Victory music

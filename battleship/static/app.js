@@ -422,37 +422,46 @@ async function fireAt(row, col) {
 /* ---------- speech ---------- */
 
 const NUMBERS = {
-  one: 1, won: 1, two: 2, to: 2, too: 2, three: 3, tree: 3, four: 4, for: 4, fore: 4,
-  five: 5, fife: 5, six: 6, sex: 6, seven: 7, eight: 8, ate: 8, ait: 8, nine: 9, niner: 9,
-  nein: 9, ten: 10,
+  one: 1, two: 2, three: 3, tree: 3, four: 4, five: 5, fife: 5, six: 6, seven: 7,
+  eight: 8, nine: 9, niner: 9, ten: 10,
 };
 const LETTER_WORDS = {
-  alpha: "A", apple: "A", hey: "A", bee: "B", be: "B", bravo: "B", see: "C", sea: "C",
-  charlie: "C", dee: "D", delta: "D", the: "D", echo: "E", ee: "E", ef: "F", foxtrot: "F",
-  gee: "G", golf: "G", jee: "G", ji: "G", aitch: "H", haych: "H", hotel: "H", eye: "I",
-  india: "I", aye: "A", ay: "A", jay: "J", jai: "J", juliet: "J",
+  alpha: "A", apple: "A", aye: "A", bee: "B", bravo: "B", sea: "C", charlie: "C",
+  dee: "D", delta: "D", echo: "E", ee: "E", ef: "F", foxtrot: "F", gee: "G", golf: "G",
+  jee: "G", aitch: "H", haych: "H", hotel: "H", eye: "I", india: "I", jay: "J",
+  juliet: "J",
 };
+/* A square only goes up in flames when you actually order the shot: either the phrase carries a
+   firing verb, or the whole utterance is nothing but the coordinate. */
+const ORDER = /\b(fire|firing|fired|launch|shoot|shot|strike|hit|bomb|target|attack|sonar|missile|square)\b/;
 
-/** "fire at D five" / "launch sonar on g-8" / "d5" -> "D5" */
+function word2letter(word) {
+  return /^[a-j]$/.test(word) ? word.toUpperCase() : LETTER_WORDS[word] || null;
+}
+
+function word2number(word) {
+  const value = /^\d+$/.test(word) ? parseInt(word, 10) : NUMBERS[word];
+  return value >= 1 && value <= 10 ? value : null;
+}
+
+/** "fire at D five" / "launch sonar on g-8" / "d5" -> "D5"; anything vaguer -> null */
 function parseSpeech(text) {
   const clean = text.toLowerCase().replace(/[.,!?]/g, " ").replace(/[-–]/g, " ");
-  const tight = clean.replace(/\s+/g, "");
-  const direct = tight.match(/([a-j])(10|[1-9])(?!\d)/);
-  if (direct) return direct[1].toUpperCase() + direct[2];
-
   const words = clean.split(/\s+/).filter(Boolean);
-  let letter = null;
-  let number = null;
-  for (const word of words) {
-    const asLetter = /^[a-j]$/.test(word) ? word.toUpperCase() : LETTER_WORDS[word];
-    const asNumber = /^\d+$/.test(word) ? parseInt(word, 10) : NUMBERS[word];
-    if (letter === null && asLetter) {
-      letter = asLetter;
-      continue;
+
+  let coord = null;
+  for (let i = 0; i < words.length && !coord; i += 1) {
+    const glued = words[i].match(/^([a-j])(10|[1-9])$/);
+    if (glued) {
+      coord = glued[1].toUpperCase() + glued[2];
+      break;
     }
-    if (number === null && asNumber >= 1 && asNumber <= 10) number = asNumber;
+    const letter = word2letter(words[i]);
+    const number = letter && i + 1 < words.length ? word2number(words[i + 1]) : null;
+    if (letter && number) coord = `${letter}${number}`;
   }
-  return letter && number ? `${letter}${number}` : null;
+  if (!coord) return null;
+  return ORDER.test(clean) || words.length <= 2 ? coord : null;
 }
 
 function setupMic() {
@@ -481,7 +490,7 @@ function setupMic() {
       say(`Didn't catch a square in “${text.trim()}” — try “fire at D five”.`, true);
       return;
     }
-    say(`Firing at ${coord}.`);
+    say(`Heard “${text.trim()}” — firing at ${coord}.`);
     const row = LETTERS.indexOf(coord[0]);
     fireAt(row, parseInt(coord.slice(1), 10) - 1);
   });
