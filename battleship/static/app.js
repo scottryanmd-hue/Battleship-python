@@ -25,7 +25,10 @@ let state = null;
 let busy = false;
 let swarmOn = false;
 let fusionArmed = false;
-let queued = null;
+/* Every press is honoured: shots called while a salvo is in the air wait here
+   in order rather than being dropped or overwriting each other. */
+const queue = [];
+const waiting = new Set();
 
 /* ---------- board drawing ---------- */
 
@@ -486,10 +489,11 @@ function cellNode(team, row, col) {
   return grid.querySelector(`.cell[data-row="${row}"][data-col="${col}"]`);
 }
 
-async function playEvents(events) {
+async function playEvents(events, hurry) {
   /* A SWE-2 sweep is thirty shots; at parade speed that is half a minute of
-     watching, so long salvos fly on a short fuse and skip the sink party. */
-  const quick = events.length > 6;
+     watching, so long salvos fly on a short fuse and skip the sink party. The
+     same short fuse clears a backlog of clicked squares. */
+  const quick = hurry || events.length > 6;
   for (const ev of events) {
     if (ev.reveal) el("away-grid").append(shipNode(ev.reveal, "cursor"));
     const aim = cellNode(ev.team, ev.row, ev.col);
@@ -533,13 +537,18 @@ function say(text, isError) {
   node.style.color = isError ? "#b3261e" : "var(--orange)";
 }
 
+function markWaiting(row, col, on) {
+  const cell = cellNode("devin", row, col);
+  if (cell) cell.classList.toggle("queued", on);
+}
+
+function clearQueue() {
+  for (const shot of queue) markWaiting(shot.row, shot.col, false);
+  queue.length = 0;
+  waiting.clear();
+}
+
 async function fireAt(row, col) {
-  /* A shot called while the previous salvo is still in the air is remembered
-     rather than dropped, so nobody has to click twice. */
-  if (busy) {
-    queued = [row, col];
-    return;
-  }
   if (state && state.winner) {
     say("Game over — start a new one.", true);
     return;
@@ -548,13 +557,46 @@ async function fireAt(row, col) {
     say(`${LETTERS[row]}${col + 1} has already been shelled.`, true);
     return;
   }
+  const square = row * SIZE + col;
+  if (waiting.has(square)) {
+    say(`${LETTERS[row]}${col + 1} is already in the tube.`);
+    return;
+  }
   const fusion = fusionArmed;
-  busy = true;
-  say(fusion ? `Devin Fusion: two missiles around ${LETTERS[row]}${col + 1}.` : "");
   if (fusion) disarmFusion();
+  queue.push({ row, col, fusion });
+  waiting.add(square);
+  markWaiting(row, col, true);
+  if (busy) {
+    /* The press counted even though the guns are busy: say so on the square
+       itself, so nobody clicks again thinking it was missed. */
+    say(`${LETTERS[row]}${col + 1} loaded — ${queue.length} in the tube.`);
+    return;
+  }
+  await drainQueue();
+}
+
+async function drainQueue() {
+  busy = true;
+  try {
+    while (queue.length) {
+      if (state && state.winner) break;
+      const shot = queue.shift();
+      waiting.delete(shot.row * SIZE + shot.col);
+      markWaiting(shot.row, shot.col, false);
+      await fireOne(shot, queue.length > 0);
+    }
+  } finally {
+    busy = false;
+    clearQueue();
+  }
+}
+
+async function fireOne({ row, col, fusion }, hurry) {
+  say(fusion ? `Devin Fusion: two missiles around ${LETTERS[row]}${col + 1}.` : "");
   try {
     const data = await api(fusion ? "/api/fusion" : "/api/fire", { row, col });
-    await playEvents(data.events);
+    await playEvents(data.events, hurry);
     state = data.state;
     paint();
     if (state.winner) {
@@ -563,17 +605,15 @@ async function fireAt(row, col) {
     }
   } catch (err) {
     say(err.message, true);
-  } finally {
-    busy = false;
   }
-  const next = queued;
-  queued = null;
-  if (next && !(state && state.winner)) await fireAt(next[0], next[1]);
 }
 
 /** A Devin-only special that needs no coordinate: SWE-2, Outsourced IT. */
 async function runSalvo(path, opening) {
-  if (busy) return;
+  if (busy) {
+    say("Wait for the missiles in the air to land.", true);
+    return;
+  }
   if (state && state.winner) {
     say("Game over — start a new one.", true);
     return;
@@ -759,6 +799,7 @@ async function boot() {
   setInterval(tickClock, 20000);
 
   el("new-game").addEventListener("click", async () => {
+    clearQueue();
     state = await api("/api/new", {});
     say("New game. Devin fires first.");
     paint();

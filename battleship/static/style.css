@@ -206,6 +206,15 @@ body {
 #away-grid .cell.miss::after { background-color: #4f7f9c; opacity: 0.4; inset: 26%; }
 #away-grid .cell.sunk::after { background-color: #21262b; }
 .cell.aim { box-shadow: inset 0 0 0 2px var(--orange); }
+/* A square pressed while the guns are busy: the shot is loaded, not lost. */
+.cell.queued {
+  background: rgba(226, 118, 27, 0.28);
+  box-shadow: inset 0 0 0 2px rgba(226, 118, 27, 0.8);
+  animation: loaded 1s ease-in-out infinite;
+}
+@keyframes loaded {
+  50% { background: rgba(226, 118, 27, 0.08); }
+}
 
 .rowlabels, .collabels { position: absolute; display: grid; font-size: 0.7rem; color: #2a6a86; }
 .rowlabels { left: -22px; top: 0; grid-template-rows: repeat(10, var(--cell)); }
