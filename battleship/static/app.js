@@ -9,7 +9,12 @@ const LETTERS = "ABCDEFGHIJ";
 let CELL = 40;
 
 function measureCell() {
-  const size = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--cell"));
+  /* The grid's own layout width over ten, not a square's offsetWidth: that is
+     rounded to whole pixels and the error multiplies into a whole square of
+     drift by row J. offsetWidth ignores the board's 3D tilt; a client rect
+     would not. */
+  const grid = el("away-grid");
+  const size = grid ? grid.offsetWidth / SIZE : 0;
   if (size > 0) CELL = size;
 }
 
@@ -739,9 +744,9 @@ function tickClock() {
 }
 
 async function boot() {
-  measureCell();
   buildGrid(el("home-grid"), false);
   buildGrid(el("away-grid"), true);
+  measureCell();
   loadAnthem();
   state = await api("/api/state");
   paint();
