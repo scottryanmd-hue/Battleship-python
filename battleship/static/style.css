@@ -116,6 +116,21 @@ body {
 .cell.miss::after { content: "o"; color: #1a6fa8; font-weight: 700; }
 .cell.hit::after { content: "✸"; color: #d0342c; font-weight: 700; font-size: 1.15rem; text-shadow: 0 1px 2px rgba(255,255,255,0.7); }
 .cell.sunk::after { content: "#"; color: #21262b; font-weight: 700; font-size: 1.15rem; }
+
+/* Every square Devin shells is branded with the cognition logo: solid on a
+   hit, faded on a miss. */
+#away-grid .cell.miss::after,
+#away-grid .cell.hit::after,
+#away-grid .cell.sunk::after {
+  content: "";
+  position: absolute;
+  inset: 13%;
+  background-color: #d0342c;
+  -webkit-mask: url("cognition.png") center / contain no-repeat;
+  mask: url("cognition.png") center / contain no-repeat;
+}
+#away-grid .cell.miss::after { background-color: #4f7f9c; opacity: 0.4; inset: 26%; }
+#away-grid .cell.sunk::after { background-color: #21262b; }
 .cell.aim { box-shadow: inset 0 0 0 2px var(--orange); }
 
 .rowlabels, .collabels { position: absolute; display: grid; font-size: 0.7rem; color: #2a6a86; }
@@ -183,6 +198,17 @@ body {
   z-index: 5;
 }
 .missile.devin { color: var(--orange); text-shadow: 0 0 8px rgba(226,118,27,0.7); }
+/* Anything wearing the cognition mark: missile head, impact burst, ship pip. */
+.logo {
+  background-color: var(--orange);
+  -webkit-mask: url("cognition.png") center / contain no-repeat;
+  mask: url("cognition.png") center / contain no-repeat;
+}
+.missile.devin .logo { display: inline-block; width: 13px; height: 13px; vertical-align: -2px; }
+.boom.logo { width: 30px; height: 30px; background-color: #d0342c; }
+.ship .pip .logo { display: block; width: 20px; height: 20px; background-color: #d0342c; }
+.ship.devin .badge .logo { display: block; width: 14px; height: 14px; }
+.logo.swatch { display: inline-block; width: 11px; height: 11px; background-color: #d0342c; vertical-align: -1px; }
 .missile.cursor { color: #111; text-shadow: 0 0 8px rgba(0,0,0,0.5); }
 .smoke { color: #7d878f; animation: fade 900ms ease-out forwards; }
 .boom { font-size: 1.6rem; animation: boom 700ms ease-out forwards; }

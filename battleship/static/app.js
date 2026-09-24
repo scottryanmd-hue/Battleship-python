@@ -83,7 +83,8 @@ function shipNode(ship, team) {
 
   const badge = document.createElement("div");
   badge.className = "badge";
-  badge.textContent = team === "devin" ? "◉" : "◆";
+  if (team === "devin") badge.innerHTML = '<span class="logo"></span>';
+  else badge.textContent = "◆";
   badge.style.left = `${w / 2 - 6}px`;
   badge.style.top = `${h / 2 - 18}px`;
   node.append(badge);
@@ -93,7 +94,8 @@ function shipNode(ship, team) {
     if (!hits.has(`${r},${c}`)) return;
     const pip = document.createElement("div");
     pip.className = "pip";
-    pip.textContent = ship.sunk ? "#" : "✸";
+    if (team === "cursor") pip.innerHTML = '<span class="logo"></span>';
+    else pip.textContent = ship.sunk ? "#" : "✸";
     pip.style.left = `${ship.horizontal ? i * CELL : 0}px`;
     pip.style.top = `${ship.horizontal ? 0 : i * CELL}px`;
     node.append(pip);
@@ -167,7 +169,8 @@ async function flyMissile(team, row, col) {
 
   const missile = document.createElement("div");
   missile.className = `missile ${team}`;
-  missile.textContent = team === "devin" ? "◉➤" : "➤◆";
+  if (team === "devin") missile.innerHTML = '<span class="logo"></span>➤';
+  else missile.textContent = "➤◆";
   grid.append(missile);
 
   const steps = 22;
@@ -195,8 +198,8 @@ async function boom(team, row, col, glyph, size) {
   const grid = el(team === "devin" ? "away-grid" : "home-grid");
   const at = centreOf(grid, row, col);
   const node = document.createElement("div");
-  node.className = "boom";
-  node.textContent = glyph;
+  node.className = glyph === "logo" ? "boom logo" : "boom";
+  if (glyph !== "logo") node.textContent = glyph;
   node.style.left = `${at.x}px`;
   node.style.top = `${at.y}px`;
   if (size) node.style.fontSize = size;
@@ -362,7 +365,7 @@ async function playEvents(events) {
     if (ev.result === "miss") {
       await boom(ev.team, ev.row, ev.col, "o", "1.1rem");
     } else if (ev.result === "hit") {
-      await boom(ev.team, ev.row, ev.col, "✸");
+      await boom(ev.team, ev.row, ev.col, ev.team === "devin" ? "logo" : "✸");
     } else {
       await boom(ev.team, ev.row, ev.col, "💥", "2.2rem");
       await finisher(ev.team, ev.ship);

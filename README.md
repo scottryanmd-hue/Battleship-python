@@ -38,7 +38,9 @@ python3 -m battleship --web --port 9000 --no-browser --seed 42
 ```
 
 The page is the Wii look in HTML/CSS: both fleets in 3/4 perspective as grey steel hulls, missiles
-with smoke trails, explosions and the otter finisher. Click a square on Cursor's waters to fire,
+with smoke trails, explosions and the otter finisher. Every square Devin shells is stamped with the
+cognition logo — bold red on a hit, faded blue on a miss, charcoal once the hull goes down. Click a
+square on Cursor's waters to fire,
 or press **Speak your shot** and say the target:
 
 - "Fire at D 5"
