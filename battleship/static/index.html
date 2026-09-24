@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Battleship Channel — Devin vs Cursor</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="channel-bar">
+    <span class="channel-title">🦦 &nbsp;B A T T L E S H I P &nbsp; C H A N N E L</span>
+    <span class="channel-sub">◉ Devin &nbsp;vs&nbsp; ◆ Cursor</span>
+    <span id="clock" class="clock"></span>
+  </header>
+
+  <main class="console">
+   <div class="play">
+    <section class="card scoreboard">
+      <div class="mii mii-devin"><img src="otter.png" alt="Devin otter"></div>
+      <div class="score">
+        <div class="teams"><span>H O M E</span><span>A W A Y</span></div>
+        <div class="big" id="big-score">0 – 0</div>
+        <div class="round">ROUND <span id="round">1</span></div>
+        <div class="names"><span class="devin">🦦 DEVIN</span><span class="cursor">CURSOR ◆</span></div>
+      </div>
+      <div class="mii mii-cursor" title="Cursor: glued together" aria-label="Glue">
+        <i class="glue-cap"></i><i class="glue-body"></i><i class="glue-drip"></i>
+      </div>
+      <div class="meters" id="meters"></div>
+    </section>
+
+    <section class="boards">
+      <div class="card board-card">
+        <h2 class="devin">HOME · DEVIN WATERS</h2>
+        <div class="stage"><div class="grid" id="home-grid"></div></div>
+        <ul class="fleet" id="home-fleet"></ul>
+      </div>
+      <div class="card board-card">
+        <h2 class="cursor">AWAY · CURSOR WATERS</h2>
+        <div class="stage"><div class="grid target" id="away-grid"></div></div>
+        <ul class="fleet" id="away-fleet"></ul>
+      </div>
+    </section>
+
+    <section class="card log"><ul id="log"></ul></section>
+   </div>
+
+   <aside class="rail">
+    <section class="card controls">
+      <button id="mic" class="mic" title="Hold a conversation with your fleet">
+        <span class="mic-icon">🎤</span><span class="mic-label">Speak your shot</span>
+      </button>
+      <div class="heard">
+        <div id="transcript" class="transcript">Say “Fire at D&nbsp;5” or “Launch sonar on G&nbsp;8”.</div>
+        <div id="message" class="message"></div>
+      </div>
+      <div class="buttons">
+        <button id="reroll" class="wii-btn">( Mii ) Rearrange fleet</button>
+        <button id="new-game" class="wii-btn">( A ) New game</button>
+      </div>
+    </section>
+
+    <section class="card swarm-bar">
+      <button id="swarm" class="swarm-btn" aria-pressed="false"
+              title="Devin-only intel: probability of an enemy hull per square">
+        <span class="logo swarm-mark"></span><span>Devin Security Swarm</span>
+      </button>
+      <div class="swarm-note" id="swarm-note">
+        Devin team only — Cursor fires blind. Heat map off.
+      </div>
+      <div class="swarm-key">
+        <span><i class="chip green"></i> most likely</span>
+        <span><i class="chip orange"></i> probably</span>
+        <span><i class="chip red"></i> not likely</span>
+      </div>
+    </section>
+
+    <section class="card swarm-bar fusion-bar">
+      <button id="fusion" class="swarm-btn fusion-btn" aria-pressed="false"
+              title="Devin-only: one call, two missiles">
+        <span class="logo swarm-mark"></span><span>Devin Fusion</span>
+      </button>
+      <div class="swarm-note" id="fusion-note">
+        Devin team only — arm it and your next called square goes up in a double-missile salvo.
+      </div>
+      <div class="swarm-key fusion-key">
+        <span><i class="chip fusion-chip"></i> 2 shots: your square + the nearest open one</span>
+      </div>
+    </section>
+
+    <section class="card swarm-bar swe2-bar">
+      <button id="swe2" class="swarm-btn swe2-btn"
+              title="Devin-only: sweep columns 1, 4 and 6 end to end">
+        <span class="logo swarm-mark"></span><span>SWE-2</span>
+      </button>
+      <div class="swarm-note" id="swe2-note">
+        Devin team only — one press walks a full salvo down columns 1, 4 and 6.
+      </div>
+      <div class="swarm-key fusion-key">
+        <span><i class="chip swe2-chip"></i> 30 squares, every open one in those columns</span>
+      </div>
+    </section>
+
+    <section class="card swarm-bar outsource-bar">
+      <button id="outsource" class="swarm-btn outsource-btn"
+              title="Devin-only: Cursor's largest hull surfaces and goes down">
+        <span class="logo swarm-mark"></span><span>Outsourced IT (AI Labor)</span>
+      </button>
+      <div class="swarm-note" id="outsource-note">
+        Devin team only — Cursor's largest ship still afloat surfaces and is struck out entirely.
+      </div>
+      <div class="swarm-key fusion-key">
+        <span><i class="chip outsource-chip"></i> next largest hull if that one is already down</span>
+      </div>
+    </section>
+   </aside>
+  </main>
+
+  <footer class="tray">
+    <span>▰ ship</span>
+    <span><i class="logo swatch"></i> Devin hit</span>
+    <span>✸ Cursor hit</span><span>o miss</span><span># sunk</span>
+    <span class="hint">click a square on Cursor's waters, or use the mic</span>
+  </footer>
+
+  <div id="finisher" class="finisher"></div>
+  <script src="app.js"></script>
+</body>
+</html>
