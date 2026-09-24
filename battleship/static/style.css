@@ -342,13 +342,13 @@ body {
 
 /* ---- otter victory party ---- */
 .party-stage { display: grid; justify-items: center; gap: 12px; }
-.party-stage .otter-pic {
+.party-stage .otter-pic, .win-stage .otter-pic {
   width: min(38vh, 300px); height: auto;
   filter: drop-shadow(0 16px 24px rgba(0, 0, 0, 0.45));
   animation: otter-arrive 0.55s cubic-bezier(0.2, 1.5, 0.4, 1) forwards,
              otter-cheer 0.62s ease-in-out 0.55s 3;
 }
-.party-stage .party-banner {
+.party-stage .party-banner, .win-stage .party-banner {
   font-family: "Trebuchet MS", sans-serif; font-size: 1.7rem; font-weight: 700;
   letter-spacing: 0.16em; color: #fff; text-transform: uppercase;
   padding: 10px 26px; border-radius: 999px;
@@ -388,6 +388,74 @@ body {
 @keyframes rocket-rise {
   0% { transform: translateY(0); opacity: 0.9; }
   100% { transform: translateY(var(--climb)); opacity: 0.1; }
+}
+/* ---- game-winning party: the otter cracks a Cursor-branded shell ---- */
+.finisher.show.finale { background: radial-gradient(circle at 50% 50%, rgba(8,44,80,0.45), rgba(6,22,48,0.78)); }
+.win-stage { display: grid; justify-items: center; gap: 10px; }
+.win-shell {
+  --s: min(26vh, 210px);
+  position: relative; width: var(--s); height: var(--s);
+  animation: shell-arrive 0.55s cubic-bezier(0.2, 1.5, 0.4, 1) backwards;
+}
+.win-shell.tap { animation: shell-tap 0.3s ease-in-out 3; }
+.shell-half {
+  position: absolute; left: 0; width: 100%; height: 50%; overflow: hidden;
+  /* The Cursor mark is one image straddling the seam, so it tears in two with the shell. */
+  background-image: url("cursor-mark.png"),
+    radial-gradient(circle at 50% 40%, #fdfdfb, #d8d8d1 62%, #b4b4ac);
+  background-repeat: no-repeat;
+  background-size: calc(var(--s) * 0.54) auto, cover;
+  box-shadow: inset 0 0 22px rgba(0, 0, 0, 0.16), 0 14px 26px rgba(0, 0, 0, 0.4);
+}
+.shell-half.top {
+  top: 0; border-radius: 50% 50% 6px 6px / 96% 96% 6px 6px;
+  background-position: center calc(var(--s) * 0.23), center top;
+}
+.shell-half.bottom {
+  bottom: 0; border-radius: 6px 6px 50% 50% / 6px 6px 96% 96%;
+  background-position: center calc(var(--s) * -0.27), center bottom;
+}
+.win-shell.crack .shell-half.top { animation: shell-open-top 1s ease-in forwards; }
+.win-shell.crack .shell-half.bottom { animation: shell-open-bottom 1s ease-in forwards; }
+.shell-seam {
+  position: absolute; left: 6%; right: 6%; top: calc(50% - 3px); height: 6px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.95), transparent);
+  opacity: 0; clip-path: polygon(0 50%, 8% 0, 17% 100%, 27% 10%, 38% 90%, 49% 0, 60% 100%,
+    71% 10%, 82% 95%, 92% 5%, 100% 50%, 92% 60%, 82% 100%, 71% 30%, 60% 100%, 49% 20%,
+    38% 100%, 27% 30%, 17% 100%, 8% 25%, 0 60%);
+}
+.win-shell.crack .shell-seam { animation: seam-flash 0.5s ease-out forwards; }
+.win-stage .otter-pic { width: min(30vh, 240px); }
+.win-stage .otter-pic.dancing { animation: otter-dance 0.9s ease-in-out infinite; }
+@keyframes shell-arrive {
+  0% { transform: translateY(60vh) scale(0.5) rotate(-14deg); opacity: 0; }
+  100% { transform: translateY(0) scale(1) rotate(0); opacity: 1; }
+}
+@keyframes shell-tap {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  40% { transform: translateY(-10px) rotate(-4deg); }
+  70% { transform: translateY(3px) rotate(3deg); }
+}
+@keyframes shell-open-top {
+  0% { transform: translateY(0) rotate(0); opacity: 1; }
+  25% { transform: translateY(-14%) rotate(-8deg); opacity: 1; }
+  100% { transform: translate(-42%, -70%) rotate(-38deg); opacity: 0; }
+}
+@keyframes shell-open-bottom {
+  0% { transform: translateY(0) rotate(0); opacity: 1; }
+  25% { transform: translateY(10%) rotate(6deg); opacity: 1; }
+  100% { transform: translate(40%, 62%) rotate(32deg); opacity: 0; }
+}
+@keyframes seam-flash {
+  0% { opacity: 0; transform: scaleX(0.3); }
+  40% { opacity: 1; transform: scaleX(1); }
+  100% { opacity: 0; transform: scaleX(1.1); }
+}
+@keyframes otter-dance {
+  0%, 100% { transform: translateY(0) rotate(-8deg) scale(1); }
+  25% { transform: translateY(-24px) rotate(6deg) scale(1.04); }
+  50% { transform: translateY(0) rotate(8deg) scale(1); }
+  75% { transform: translateY(-16px) rotate(-6deg) scale(1.03); }
 }
 @keyframes flyin {
   0% { transform: translateX(-120vw) rotate(-25deg) scale(0.6); }

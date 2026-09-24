@@ -406,6 +406,40 @@ async function finisher(team, shipName) {
   }
 }
 
+/* Devin takes the match: the otter hauls up a Cursor-branded shell, cracks it
+   open, the halves fade out and it dances through the fireworks. */
+async function victoryParty() {
+  const overlay = el("finisher");
+  overlay.innerHTML =
+    '<div class="win-stage">' +
+    '<div class="win-shell" id="win-shell">' +
+    '<div class="shell-half top"></div><div class="shell-half bottom"></div>' +
+    '<div class="shell-seam"></div>' +
+    "</div>" +
+    '<img class="otter-pic" src="otter.png" alt="The Devin otter celebrating">' +
+    '<div class="party-banner">Devin wins!</div>' +
+    "</div>";
+  overlay.classList.add("show", "party", "finale");
+
+  const shell = el("win-shell");
+  const otter = overlay.querySelector(".otter-pic");
+  await sleep(700);
+  shell.classList.add("tap");
+  await sleep(950);
+  shell.classList.add("crack");
+  playAnthem();
+  const box = shell.getBoundingClientRect();
+  burst(box.left + box.width / 2, box.top + box.height / 2);
+  await sleep(1000);
+  shell.remove();
+  otter.classList.add("dancing");
+  await fireworks(6200);
+  await sleep(400);
+  overlay.classList.remove("show", "party", "finale");
+  overlay.innerHTML = "";
+  stopAnthem();
+}
+
 function cellNode(team, row, col) {
   const grid = el(team === "devin" ? "away-grid" : "home-grid");
   return grid.querySelector(`.cell[data-row="${row}"][data-col="${col}"]`);
@@ -475,6 +509,7 @@ async function fireAt(row, col) {
     paint();
     if (state.winner) {
       say(state.winner === "devin" ? "🦦 FINAL: DEVIN WINS" : "◆ FINAL: CURSOR WINS");
+      if (state.winner === "devin") await victoryParty();
     }
   } catch (err) {
     say(err.message, true);

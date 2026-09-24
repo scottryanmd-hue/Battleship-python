@@ -88,6 +88,12 @@ the four squares around it; any of those already shelled are skipped and the sal
 shot on a square you have already taken or runs off the edge of the board. Cursor still answers
 once. Fusion disarms itself after the salvo, so the shot after it is an ordinary single one.
 
+### Winning the match
+
+When the last Cursor hull goes down, the otter surfaces with a clam shell branded with the Cursor
+mark, taps it three times, cracks it open — the two halves and the logo spin away and fade — and
+then dances under the fireworks to the fanfare.
+
 ### Victory music
 
 Sinking a Cursor ship sets off fireworks, the otter and a short 80s-montage fanfare synthesised in
