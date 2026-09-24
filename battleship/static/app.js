@@ -77,13 +77,15 @@ function shipNode(ship, team) {
   // Superstructure: a deckhouse a third of the way back, plus a funnel.
   const deck = document.createElement("div");
   deck.className = "deck";
+  // A compact deckhouse amidships, not a slab the length of the hull.
+  const house = Math.min(CELL * 1.5, CELL * (ship.size - 1.6));
   if (ship.horizontal) {
     Object.assign(deck.style, {
-      left: `${CELL * 0.9}px`, top: "26%", width: `${CELL * (ship.size - 2.1)}px`, height: "48%",
+      left: `${w / 2 - house / 2}px`, top: "32%", width: `${house}px`, height: "36%",
     });
   } else {
     Object.assign(deck.style, {
-      top: `${CELL * 0.9}px`, left: "26%", height: `${CELL * (ship.size - 2.1)}px`, width: "48%",
+      top: `${h / 2 - house / 2}px`, left: "32%", height: `${house}px`, width: "36%",
     });
   }
   node.append(deck);
@@ -93,6 +95,25 @@ function shipNode(ship, team) {
   funnel.style.left = `${w / 2 - 5}px`;
   funnel.style.top = `${h / 2 - 5}px`;
   node.append(funnel);
+
+  // Bridge tower over the deckhouse, and main-battery turrets fore and aft:
+  // what separates a battleship from a submarine at this scale.
+  const bridge = document.createElement("div");
+  bridge.className = "bridge";
+  bridge.style.left = `${w / 2 - (ship.horizontal ? 11 : 5)}px`;
+  bridge.style.top = `${h / 2 - (ship.horizontal ? 5 : 11)}px`;
+  node.append(bridge);
+
+  const along = (frac) => (ship.horizontal ? [frac * w, h / 2] : [w / 2, frac * h]);
+  [0.22, 0.8].forEach((frac, i) => {
+    const [x, y] = along(frac);
+    const turret = document.createElement("div");
+    turret.className = `turret ${i === 0 ? "fore" : "aft"}`;
+    turret.style.left = `${x - 7}px`;
+    turret.style.top = `${y - 7}px`;
+    turret.innerHTML = '<i class="barrel"></i><i class="barrel two"></i>';
+    node.append(turret);
+  });
 
   const badge = document.createElement("div");
   badge.className = "badge";

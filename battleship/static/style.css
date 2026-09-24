@@ -163,15 +163,20 @@ body {
   transform-style: preserve-3d;
   pointer-events: none;
 }
+/* Surface warship, not a submarine: a raked bow cut into the plan view and a
+   flat transom stern. */
 .ship .hull {
   position: absolute;
-  inset: 12%;
-  border-radius: 40% 12% 12% 40% / 50% 50% 50% 50%;
+  inset: 10%;
+  border-radius: 3px;
+  clip-path: polygon(0 50%, 13% 4%, 97% 8%, 100% 50%, 97% 92%, 13% 96%);
   background: linear-gradient(180deg, var(--steel-lit), var(--steel) 55%, var(--steel-dark));
   box-shadow: 0 10px 14px rgba(15, 50, 80, 0.45), inset 0 2px 0 rgba(255,255,255,0.5);
   transform: translateZ(10px);
 }
-.ship.vertical .hull { border-radius: 50% 50% 12% 12% / 40% 40% 12% 12%; }
+.ship.vertical .hull {
+  clip-path: polygon(50% 0, 96% 13%, 92% 97%, 50% 100%, 8% 97%, 4% 13%);
+}
 .ship .deck {
   position: absolute;
   background: linear-gradient(180deg, #e2e7ea, var(--steel-lit));
@@ -179,12 +184,50 @@ body {
   box-shadow: 0 6px 8px rgba(15, 50, 80, 0.35);
   transform: translateZ(22px);
 }
+/* Superstructure block the funnel sits on. */
+.ship .bridge {
+  position: absolute;
+  width: 22px; height: 9px; border-radius: 2px;
+  background: linear-gradient(180deg, #eef2f4, #b6bec4);
+  box-shadow: 0 5px 7px rgba(15, 50, 80, 0.35), inset 0 1px 0 #fff;
+  transform: translateZ(28px);
+}
+.ship.vertical .bridge { width: 10px; height: 22px; }
+.ship.cursor .bridge { background: linear-gradient(180deg, #a9a396, #787063); }
+/* Main battery: a barbette with a barrel trained down the ship's axis. */
+.ship .turret {
+  position: absolute;
+  width: 14px; height: 13px; border-radius: 5px;
+  background: linear-gradient(180deg, #c3cace, #798087 70%, #5a6167);
+  box-shadow: 0 4px 6px rgba(15, 50, 80, 0.4), inset 0 1px 0 rgba(255,255,255,0.6);
+  transform: translateZ(24px);
+}
+.ship .barrel {
+  position: absolute; left: 50%; top: 50%;
+  width: 16px; height: 3px; border-radius: 2px;
+  background: linear-gradient(90deg, #6f767c, #3b4145);
+  transform: translate(0, -4px);
+}
+.ship .barrel.two { transform: translate(0, 1px); }
+.ship .turret.fore .barrel { transform: translate(-16px, -4px); }
+.ship .turret.fore .barrel.two { transform: translate(-16px, 1px); }
+.ship.vertical .barrel { width: 3px; height: 16px; transform: translate(-4px, 0); }
+.ship.vertical .barrel.two { transform: translate(1px, 0); }
+.ship.vertical .turret.fore .barrel { transform: translate(-4px, -16px); }
+.ship.vertical .turret.fore .barrel.two { transform: translate(1px, -16px); }
+.ship.cursor .turret { background: linear-gradient(180deg, #b5ab9b, #7d7466 70%, #564f45); }
 .ship .funnel {
   position: absolute;
   width: 10px; height: 10px; border-radius: 3px;
   background: linear-gradient(180deg, #9aa1a8, #6a7178);
-  transform: translateZ(34px);
+  transform: translateZ(38px);
   box-shadow: 0 4px 6px rgba(15, 50, 80, 0.4);
+}
+/* Lattice mast above the bridge. */
+.ship .funnel::before {
+  content: ""; position: absolute; left: 4px; top: -9px;
+  width: 2px; height: 10px; background: #6a7178;
+  box-shadow: -3px 4px 0 -0.5px #6a7178, 3px 4px 0 -0.5px #6a7178;
 }
 .ship .badge {
   position: absolute;
