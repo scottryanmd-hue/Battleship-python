@@ -10,6 +10,17 @@ portraits, Wii Sports meters and a Wii Menu button tray along the bottom. Ships 
 view — two rows per square, a raked bow, deckhouse and funnel above the waterline and a grey steel
 hull below — spanning the squares they occupy. Cursor's stay hidden until you hit them.
 
+## Play it
+
+```bash
+git clone https://github.com/scottryanmd-hue/Battleship-python.git
+cd Battleship-python
+python3 -m battleship --web     # the board in your browser, with the mic button
+python3 -m battleship           # or the terminal version
+```
+
+Python 3.10+, no dependencies to install.
+
 ## Run it
 
 Requires Python 3.10+ and a UTF-8 terminal. No dependencies.
