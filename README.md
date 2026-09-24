@@ -55,6 +55,18 @@ or is nothing but the coordinate, so overheard conversation never shells a squar
 that triggered each shot is echoed under the mic. The server binds to `127.0.0.1` only and keeps
 one game in memory; `( A ) New game` starts another.
 
+### Devin Security Swarm
+
+A toggle under the mic, and a Devin-team-only weapon: Cursor's AI fires blind, but you can light up
+its waters with a probability heat map — green where a hull most likely hides, orange for
+probable, red for unlikely. The engine (`battleship/probability.py`) is a density model: it
+enumerates every legal placement of every Cursor ship still afloat against the squares you have
+already shelled, scores each remaining square by how many placements cover it, and weights
+placements that would explain a known, unsunk hit 25× higher — so once you wound a hull the map
+turns into a targeting solution along its axis. It reads only public information (your shot grid
+and which ships have sunk), never the defender's ship list, so it is an edge, not X-ray vision.
+The banner names the single best square; press the button again to stand the swarm down.
+
 ### Victory music
 
 Sinking a Cursor ship sets off fireworks, the otter and a short 80s-montage fanfare synthesised in
@@ -122,6 +134,7 @@ battleship/
   effects.py  missile flight + smoke, explosions, otter finisher
   game.py     placement UI, turn loop, AI, endgame
   session.py  headless game state machine (same rules, no I/O) for the browser
+  probability.py  Devin Security Swarm: placement-density heat map over the enemy grid
   web.py      stdlib HTTP server: static files + /api/state, /api/fire, /api/new, /api/reroll
   static/     browser front-end: Wii board in CSS 3D, missiles, mic button
   __main__.py CLI entry point

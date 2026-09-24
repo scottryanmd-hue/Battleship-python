@@ -12,6 +12,7 @@ from __future__ import annotations
 import random
 
 from .board import EXPLOSION_THRESHOLD, FLEET, SIZE, Board, Ship, format_coord
+from .probability import best_square, density
 
 
 def _ship_state(ship: Ship, reveal: bool) -> dict | None:
@@ -143,4 +144,13 @@ class Session:
             },
             "home": self.board_state(self.player, reveal=True),
             "away": self.board_state(self.ai, reveal=self.winner is not None),
+            "swarm": self.swarm(),
+        }
+
+    def swarm(self) -> dict:
+        """Devin-only intel: the probability heat map over Cursor's waters."""
+        best = best_square(self.ai)
+        return {
+            "heat": density(self.ai),
+            "best": format_coord(*best) if best else None,
         }

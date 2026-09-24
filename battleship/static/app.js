@@ -11,6 +11,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 let state = null;
 let busy = false;
+let swarmOn = false;
 
 /* ---------- board drawing ---------- */
 
@@ -149,9 +150,40 @@ function paint() {
 
   paintBoard(el("home-grid"), state.home, "devin");
   paintBoard(el("away-grid"), state.away, "cursor");
+  paintSwarm();
   paintFleet(el("home-fleet"), state.home.fleet);
   paintFleet(el("away-fleet"), state.away.fleet);
   el("log").innerHTML = state.log.map((line) => `<li>${line}</li>`).join("");
+}
+
+/* ---------- Devin Security Swarm ---------- */
+
+/* Cold red for the unlikely squares, orange for the plausible ones, green where
+   the density engine says a hull is hiding. */
+function heatColour(score) {
+  if (score >= 0.85) return "rgba(47, 174, 87, 0.75)";
+  if (score >= 0.6) return "rgba(232, 137, 43, 0.6)";
+  if (score >= 0.3) return "rgba(214, 96, 46, 0.45)";
+  return "rgba(192, 57, 43, 0.3)";
+}
+
+function paintSwarm() {
+  const grid = el("away-grid");
+  grid.classList.toggle("swarm", swarmOn);
+  const swarm = state && state.swarm;
+  const best = swarmOn && swarm ? swarm.best : null;
+  grid.querySelectorAll(".cell").forEach((cell) => {
+    const row = Number(cell.dataset.row);
+    const col = Number(cell.dataset.col);
+    const score = swarm ? swarm.heat[row][col] : 0;
+    cell.style.setProperty("--heat", score > 0 ? heatColour(score) : "transparent");
+    cell.classList.toggle("swarm-best", best === `${LETTERS[row]}${col + 1}`);
+  });
+  el("swarm-note").textContent = !swarmOn
+    ? "Devin team only — Cursor fires blind. Heat map off."
+    : swarm && swarm.best
+      ? `Swarm intel: ${swarm.best} is the likeliest hull on Cursor's waters.`
+      : "Swarm intel: nothing left to model.";
 }
 
 /* ---------- animation ---------- */
@@ -544,6 +576,13 @@ async function boot() {
     say("New game. Devin fires first.");
     paint();
   });
+  el("swarm").addEventListener("click", () => {
+    swarmOn = !swarmOn;
+    el("swarm").setAttribute("aria-pressed", String(swarmOn));
+    paintSwarm();
+    say(swarmOn ? "Devin Security Swarm online." : "Swarm stood down.");
+  });
+
   el("reroll").addEventListener("click", async () => {
     try {
       state = await api("/api/reroll", {});

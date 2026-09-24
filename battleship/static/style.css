@@ -246,6 +246,39 @@ body {
 }
 .wii-btn:hover { background: linear-gradient(180deg, #fff, #e2eef8); }
 
+/* ---- Devin Security Swarm ---- */
+.swarm-bar { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 18px; }
+.swarm-btn {
+  display: flex; align-items: center; gap: 10px;
+  border: 1px solid #e4b9a6; border-radius: 999px; cursor: pointer;
+  padding: 12px 20px; font-size: 0.95rem; font-weight: 600; color: #8d2f14;
+  background: linear-gradient(180deg, #fff, #ffe7d8);
+  box-shadow: 0 6px 14px rgba(200, 90, 30, 0.2), inset 0 1px 0 #fff;
+}
+.swarm-btn:hover { background: linear-gradient(180deg, #fff, #ffdcc6); }
+.swarm-btn[aria-pressed="true"] {
+  color: #fff; border-color: #b3400f;
+  background: linear-gradient(180deg, #f2703a, #d0342c);
+  box-shadow: 0 0 0 4px rgba(226, 118, 27, 0.25), inset 0 1px 0 rgba(255,255,255,0.4);
+}
+.swarm-mark { display: block; width: 18px; height: 18px; background-color: #d0342c; }
+.swarm-btn[aria-pressed="true"] .swarm-mark { background-color: #fff; }
+.swarm-note { font-size: 0.85rem; opacity: 0.8; }
+.swarm-key { display: flex; gap: 12px; font-size: 0.75rem; opacity: 0.8; }
+.swarm-key .chip { display: inline-block; width: 11px; height: 11px; border-radius: 3px; vertical-align: -1px; }
+.chip.green { background: #2fae57; }
+.chip.orange { background: #e8892b; }
+.chip.red { background: #c0392b; }
+
+/* The heat tint sits under the shot markers, flat on the water. */
+.grid.swarm .cell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--heat, transparent);
+}
+.grid.swarm .cell.swarm-best { box-shadow: inset 0 0 0 3px #12692f; }
+
 .log ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: 0.85rem; }
 .log li { opacity: 0.85; }
 .log li:last-child { opacity: 1; font-weight: 600; }
