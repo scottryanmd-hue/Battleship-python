@@ -12,7 +12,7 @@
   /* One square of the sea. It tracks the window so all ten rows sit inside
      their card and the control rail needs no scroll: the width term is the
      space left beside the rail, the height term keeps row J on screen. */
-  --cell: clamp(18px, min(calc(min(50vw, 800px) / 12.05 - 19px), 4.4vh), 46px);
+  --cell: clamp(26px, min(calc(min(50vw, 800px) / 12.05 - 19px), 4.4vh), 46px);
 }
 
 * { box-sizing: border-box; }
@@ -42,11 +42,18 @@ body {
 
 /* Boards on the left, a control rail pinned alongside them so no button needs a scroll. */
 .console {
-  max-width: 1600px; margin: 14px auto 24px; padding: 0 18px;
+  /* The tray is fixed to the bottom of the window, so the page ends above it
+     rather than behind it. */
+  max-width: 1600px; margin: 14px auto 24px; padding: 0 18px 58px;
   display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 18px; align-items: start;
 }
 .play { display: grid; gap: 12px; min-width: 0; }
-.rail { display: grid; gap: 10px; position: sticky; top: 14px; align-content: start; }
+/* Sticky so the buttons follow the page, but never taller than the window:
+   its own cards scroll rather than hanging off the bottom out of reach. */
+.rail {
+  display: grid; gap: 10px; position: sticky; top: 14px; align-content: start;
+  max-height: calc(100vh - 80px); overflow-y: auto;
+}
 .rail .card { padding: 10px 14px; }
 /* Short windows: tighten the rail so its five cards still clear the fold. */
 @media (max-height: 860px) {
@@ -541,7 +548,7 @@ body {
 
 .log ul {
   list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; font-size: 0.8rem;
-  max-height: 4.6rem; overflow-y: auto;
+  max-height: 7rem; overflow-y: auto;
 }
 .log li { opacity: 0.85; }
 .log li:last-child { opacity: 1; font-weight: 600; }
