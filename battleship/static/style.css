@@ -105,7 +105,9 @@ body {
   display: grid;
   grid-template-columns: repeat(10, var(--cell));
   grid-template-rows: repeat(10, var(--cell));
-  transform: rotateX(52deg) rotateZ(0deg);
+  /* Shallower than a true 3/4 view on purpose: every degree of tilt squashes
+     the squares vertically and makes them harder to hit. */
+  transform: rotateX(44deg) rotateZ(0deg);
   transform-style: preserve-3d;
   background: linear-gradient(180deg, var(--sea), var(--sea-deep));
   border-radius: 6px;
@@ -121,7 +123,13 @@ body {
   color: #2a6a86;
 }
 .grid.target .cell { cursor: crosshair; }
-.grid.target .cell:hover { background: rgba(255, 255, 255, 0.35); }
+.grid.target .cell:hover {
+  background: rgba(255, 255, 255, 0.55);
+  box-shadow: inset 0 0 0 2px var(--orange);
+}
+.grid.target .cell:active { background: rgba(226, 118, 27, 0.45); }
+/* Nothing on top of a square may eat the press meant for it. */
+.grid .odds, .grid .ship, .grid .marker { pointer-events: none; }
 /* Markers sit flat on the water: any translateZ would shift them off their own
    square under the board's rotateX. */
 .cell.miss::after { content: "o"; color: #1a6fa8; font-weight: 700; }

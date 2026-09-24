@@ -13,6 +13,7 @@ let state = null;
 let busy = false;
 let swarmOn = false;
 let fusionArmed = false;
+let queued = null;
 
 /* ---------- board drawing ---------- */
 
@@ -35,7 +36,14 @@ function buildGrid(node, clickable) {
       cell.dataset.col = c;
       if (clickable) {
         cell.innerHTML = '<span class="odds"></span>';
-        cell.addEventListener("click", () => fireAt(r, c));
+        /* pointerdown, not click: on a board tilted into 3/4 view the squares
+           are only ~25px tall on screen, so a pointer that drifts a pixel
+           between press and release lands on a neighbour and the click event
+           never fires. */
+        cell.addEventListener("pointerdown", (ev) => {
+          ev.preventDefault();
+          fireAt(r, c);
+        });
       }
       node.append(cell);
     }
@@ -489,7 +497,12 @@ function say(text, isError) {
 }
 
 async function fireAt(row, col) {
-  if (busy) return;
+  /* A shot called while the previous salvo is still in the air is remembered
+     rather than dropped, so nobody has to click twice. */
+  if (busy) {
+    queued = [row, col];
+    return;
+  }
   if (state && state.winner) {
     say("Game over — start a new one.", true);
     return;
@@ -516,6 +529,9 @@ async function fireAt(row, col) {
   } finally {
     busy = false;
   }
+  const next = queued;
+  queued = null;
+  if (next && !(state && state.winner)) await fireAt(next[0], next[1]);
 }
 
 /* ---------- speech ---------- */
