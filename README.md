@@ -27,6 +27,29 @@ python3 -m battleship --speed 0.5   # animations at half the pause length (0 = i
 python3 -m battleship --seed 42     # reproducible ship placement and AI shots
 ```
 
+## Browser mode, with voice targeting
+
+The same rules also run behind a tiny local web server, so you can call your shots out loud
+instead of typing them:
+
+```bash
+python3 -m battleship --web            # serves http://127.0.0.1:8000 and opens a browser
+python3 -m battleship --web --port 9000 --no-browser --seed 42
+```
+
+The page is the Wii look in HTML/CSS: both fleets in 3/4 perspective as grey steel hulls, missiles
+with smoke trails, explosions and the otter finisher. Click a square on Cursor's waters to fire,
+or press **Speak your shot** and say the target:
+
+- "Fire at D 5"
+- "Launch sonar on G 8"
+- "D5"
+
+Voice uses the browser-native `webkitSpeechRecognition` API, so it needs Chrome (or another
+WebKit/Blink browser) and microphone permission — the button explains itself and disables where the
+API is missing, and clicking squares always works. The server binds to `127.0.0.1` only and keeps
+one game in memory; `( A ) New game` starts another.
+
 ## How to play
 
 1. Choose `r` to have your five ships (Carrier 5, Battleship 4, Cruiser 3, Submarine 3,
@@ -85,5 +108,8 @@ battleship/
   render.py   Wii panels/channel bar, board drawing, scoreboard, side-by-side layout
   effects.py  missile flight + smoke, explosions, otter finisher
   game.py     placement UI, turn loop, AI, endgame
+  session.py  headless game state machine (same rules, no I/O) for the browser
+  web.py      stdlib HTTP server: static files + /api/state, /api/fire, /api/new, /api/reroll
+  static/     browser front-end: Wii board in CSS 3D, missiles, mic button
   __main__.py CLI entry point
 ```

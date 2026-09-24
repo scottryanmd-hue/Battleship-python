@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Battleship Channel — Devin vs Cursor</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="channel-bar">
+    <span class="channel-title">🦦 &nbsp;B A T T L E S H I P &nbsp; C H A N N E L</span>
+    <span class="channel-sub">◉ Devin &nbsp;vs&nbsp; ◆ Cursor</span>
+    <span id="clock" class="clock"></span>
+  </header>
+
+  <main class="console">
+    <section class="card scoreboard">
+      <div class="mii mii-devin"><span>◕ ◕</span><small>ᵕ</small></div>
+      <div class="score">
+        <div class="teams"><span>H O M E</span><span>A W A Y</span></div>
+        <div class="big" id="big-score">0 – 0</div>
+        <div class="round">ROUND <span id="round">1</span></div>
+        <div class="names"><span class="devin">🦦 DEVIN</span><span class="cursor">CURSOR ◆</span></div>
+      </div>
+      <div class="mii mii-cursor"><span>● ●</span><small>─</small></div>
+      <div class="meters" id="meters"></div>
+    </section>
+
+    <section class="boards">
+      <div class="card board-card">
+        <h2 class="devin">HOME · DEVIN WATERS</h2>
+        <div class="stage"><div class="grid" id="home-grid"></div></div>
+        <ul class="fleet" id="home-fleet"></ul>
+      </div>
+      <div class="card board-card">
+        <h2 class="cursor">AWAY · CURSOR WATERS</h2>
+        <div class="stage"><div class="grid target" id="away-grid"></div></div>
+        <ul class="fleet" id="away-fleet"></ul>
+      </div>
+    </section>
+
+    <section class="card controls">
+      <button id="mic" class="mic" title="Hold a conversation with your fleet">
+        <span class="mic-icon">🎤</span><span class="mic-label">Speak your shot</span>
+      </button>
+      <div class="heard">
+        <div id="transcript" class="transcript">Say “Fire at D&nbsp;5” or “Launch sonar on G&nbsp;8”.</div>
+        <div id="message" class="message"></div>
+      </div>
+      <div class="buttons">
+        <button id="reroll" class="wii-btn">( Mii ) Rearrange fleet</button>
+        <button id="new-game" class="wii-btn">( A ) New game</button>
+      </div>
+    </section>
+
+    <section class="card log"><ul id="log"></ul></section>
+  </main>
+
+  <footer class="tray">
+    <span>▰ ship</span><span>✸ hit</span><span>o miss</span><span># sunk</span>
+    <span class="hint">click a square on Cursor's waters, or use the mic</span>
+  </footer>
+
+  <div id="finisher" class="finisher"></div>
+  <script src="app.js"></script>
+</body>
+</html>
