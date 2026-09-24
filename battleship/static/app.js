@@ -12,6 +12,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 let state = null;
 let busy = false;
 let swarmOn = false;
+let fusionArmed = false;
 
 /* ---------- board drawing ---------- */
 
@@ -32,7 +33,10 @@ function buildGrid(node, clickable) {
       cell.className = "cell";
       cell.dataset.row = r;
       cell.dataset.col = c;
-      if (clickable) cell.addEventListener("click", () => fireAt(r, c));
+      if (clickable) {
+        cell.innerHTML = '<span class="odds"></span>';
+        cell.addEventListener("click", () => fireAt(r, c));
+      }
       node.append(cell);
     }
   }
@@ -176,14 +180,33 @@ function paintSwarm() {
     const row = Number(cell.dataset.row);
     const col = Number(cell.dataset.col);
     const score = swarm ? swarm.heat[row][col] : 0;
+    const odds = swarm && swarm.probability ? swarm.probability[row][col] : 0;
     cell.style.setProperty("--heat", score > 0 ? heatColour(score) : "transparent");
     cell.classList.toggle("swarm-best", best === `${LETTERS[row]}${col + 1}`);
+    const label = cell.querySelector(".odds");
+    if (label) {
+      const exact = swarm && swarm.method === "posterior";
+      label.textContent = swarmOn && score > 0 && exact ? `${Math.round(odds * 100)}%` : "";
+    }
   });
-  el("swarm-note").textContent = !swarmOn
-    ? "Devin team only — Cursor fires blind. Heat map off."
-    : swarm && swarm.best
-      ? `Swarm intel: ${swarm.best} is the likeliest hull on Cursor's waters.`
-      : "Swarm intel: nothing left to model.";
+
+  if (!swarmOn) {
+    el("swarm-note").textContent = "Devin team only — Cursor fires blind. Heat map off.";
+    return;
+  }
+  if (!swarm || !swarm.best) {
+    el("swarm-note").textContent = "Swarm intel: nothing left to model.";
+    return;
+  }
+  const peak = swarm.probability
+    ? Math.round(Math.max(...swarm.probability.flat()) * 100)
+    : null;
+  el("swarm-note").textContent =
+    swarm.method === "posterior"
+      ? `Swarm intel: ${swarm.best} holds a hull in ${peak}% of the layouts still `
+        + `possible (${Math.round(swarm.ess)} effective samples).`
+      : `Swarm intel: ${swarm.best} — too few layouts fit these hits to sample, `
+        + "so this is the placement-density map.";
 }
 
 /* ---------- animation ---------- */
@@ -418,6 +441,13 @@ async function api(path, body) {
   return data;
 }
 
+function disarmFusion() {
+  fusionArmed = false;
+  el("fusion").setAttribute("aria-pressed", "false");
+  el("fusion-note").textContent =
+    "Devin team only — arm it and your next called square goes up in a five-missile salvo.";
+}
+
 function say(text, isError) {
   const node = el("message");
   node.textContent = text;
@@ -434,10 +464,12 @@ async function fireAt(row, col) {
     say(`${LETTERS[row]}${col + 1} has already been shelled.`, true);
     return;
   }
+  const fusion = fusionArmed;
   busy = true;
-  say("");
+  say(fusion ? `Devin Fusion: five missiles around ${LETTERS[row]}${col + 1}.` : "");
+  if (fusion) disarmFusion();
   try {
-    const data = await api("/api/fire", { row, col });
+    const data = await api(fusion ? "/api/fusion" : "/api/fire", { row, col });
     await playEvents(data.events);
     state = data.state;
     paint();
@@ -575,6 +607,18 @@ async function boot() {
     state = await api("/api/new", {});
     say("New game. Devin fires first.");
     paint();
+  });
+  el("fusion").addEventListener("click", () => {
+    if (fusionArmed) {
+      disarmFusion();
+      say("Fusion disarmed.");
+      return;
+    }
+    fusionArmed = true;
+    el("fusion").setAttribute("aria-pressed", "true");
+    el("fusion-note").textContent =
+      "Armed — your next shot lands on that square and the four nearest open ones.";
+    say("Devin Fusion armed. Call your square.");
   });
   el("swarm").addEventListener("click", () => {
     swarmOn = !swarmOn;

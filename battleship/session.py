@@ -12,7 +12,10 @@ from __future__ import annotations
 import random
 
 from .board import EXPLOSION_THRESHOLD, FLEET, SIZE, Board, Ship, format_coord
-from .probability import best_square, density
+from .probability import heatmap
+
+#: Squares a Devin Fusion salvo puts in the water, the aimed one included.
+FUSION_SHOTS = 5
 
 
 def _ship_state(ship: Ship, reveal: bool) -> dict | None:
@@ -95,8 +98,7 @@ class Session:
         self.log = self.log[-6:]
         return event
 
-    def fire(self, row: int, col: int) -> list[dict]:
-        """Devin's shot, then Cursor's reply. Returns the events, in order."""
+    def _check_target(self, row: int, col: int) -> None:
         if self.winner is not None:
             raise ValueError("The game is already over.")
         if not (0 <= row < SIZE and 0 <= col < SIZE):
@@ -104,20 +106,70 @@ class Session:
         if self.ai.already_shot(row, col):
             raise ValueError("You already shelled that square.")
 
+    def _cursor_reply(self, events: list[dict]) -> bool:
+        """Cursor fires back. True if the game carries on."""
+        row, col = self.ai_targets.pop()
+        while self.player.already_shot(row, col):
+            row, col = self.ai_targets.pop()
+        events.append(self._shoot("cursor", row, col))
+        if self.player.defeated:
+            self.winner = "cursor"
+            return False
+        self.turn += 1
+        return True
+
+    def fire(self, row: int, col: int) -> list[dict]:
+        """Devin's shot, then Cursor's reply. Returns the events, in order."""
+        self._check_target(row, col)
         events = [self._shoot("devin", row, col)]
         if self.ai.defeated:
             self.winner = "devin"
             return events
+        self._cursor_reply(events)
+        return events
 
-        ai_row, ai_col = self.ai_targets.pop()
-        while self.player.already_shot(ai_row, ai_col):
-            ai_row, ai_col = self.ai_targets.pop()
-        events.append(self._shoot("cursor", ai_row, ai_col))
-        if self.player.defeated:
-            self.winner = "cursor"
-            return events
+    def fusion_targets(self, row: int, col: int, count: int = FUSION_SHOTS) -> list[list[int]]:
+        """The aimed square and the nearest unshelled squares around it.
 
-        self.turn += 1
+        The cross around the target comes first; where one of those squares has
+        already been shelled the salvo spills outward — diagonals, then the next
+        ring — so a Fusion always puts `count` live missiles in the water, as
+        long as Cursor's waters still hold that many unshot squares.
+        """
+        ring = [
+            (-1, 0), (0, -1), (0, 1), (1, 0),  # the cross, first
+            (-1, -1), (-1, 1), (1, -1), (1, 1),  # then the corners
+        ]
+        ring += sorted(
+            (
+                (dr, dc)
+                for dr in range(-3, 4)
+                for dc in range(-3, 4)
+                if (dr, dc) != (0, 0) and (dr, dc) not in ring
+            ),
+            key=lambda d: (max(abs(d[0]), abs(d[1])), abs(d[0]) + abs(d[1]), d),
+        )
+
+        targets = [[row, col]]
+        for dr, dc in ring:
+            if len(targets) >= count:
+                break
+            r, c = row + dr, col + dc
+            if 0 <= r < SIZE and 0 <= c < SIZE and not self.ai.already_shot(r, c):
+                targets.append([r, c])
+        return targets
+
+    def fusion(self, row: int, col: int) -> list[dict]:
+        """A Devin Fusion salvo: five missiles at once, then one Cursor reply."""
+        self._check_target(row, col)
+        events = []
+        for r, c in self.fusion_targets(row, col):
+            events.append(self._shoot("devin", r, c))
+            events[-1]["fusion"] = True
+            if self.ai.defeated:
+                self.winner = "devin"
+                return events
+        self._cursor_reply(events)
         return events
 
     # -- state -------------------------------------------------------------
@@ -148,9 +200,17 @@ class Session:
         }
 
     def swarm(self) -> dict:
-        """Devin-only intel: the probability heat map over Cursor's waters."""
-        best = best_square(self.ai)
+        """Devin-only intel: the probability heat map over Cursor's waters.
+
+        Recomputed from scratch after every shot, so the map always reflects
+        every miss, hit and wreck currently on the board.
+        """
+        read = heatmap(self.ai, self.rng)
+        best = read["best"]
         return {
-            "heat": density(self.ai),
+            "heat": read["heat"],
+            "probability": read["probability"],
             "best": format_coord(*best) if best else None,
+            "method": read["method"],
+            "ess": read["ess"],
         }

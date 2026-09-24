@@ -59,13 +59,34 @@ one game in memory; `( A ) New game` starts another.
 
 A toggle under the mic, and a Devin-team-only weapon: Cursor's AI fires blind, but you can light up
 its waters with a probability heat map — green where a hull most likely hides, orange for
-probable, red for unlikely. The engine (`battleship/probability.py`) is a density model: it
-enumerates every legal placement of every Cursor ship still afloat against the squares you have
-already shelled, scores each remaining square by how many placements cover it, and weights
-placements that would explain a known, unsunk hit 25× higher — so once you wound a hull the map
-turns into a targeting solution along its axis. It reads only public information (your shot grid
-and which ships have sunk), never the defender's ship list, so it is an edge, not X-ray vision.
-The banner names the single best square; press the button again to stand the swarm down.
+probable, red for unlikely — recomputed from scratch after every single shot, with the odds
+printed on each square.
+
+Those odds are a real posterior, not a score. `battleship/probability.py` asks: *given every miss,
+every open hit and every wreck on the board, in what fraction of the fleet layouts still possible
+does a hull sit on this square?* The prior is the game's own placement process — ships laid down in
+fleet order, each uniformly at random among the spots the earlier ones left free — and layouts are
+drawn by Monte Carlo. Plain rejection sampling collapses as soon as a couple of hits are on the
+board (almost no random layout happens to cover them), so draws come from a proposal that
+deliberately steers ships onto hits nothing has explained yet and are then reweighted by the
+prior/proposal likelihood ratio — sequential importance sampling, unbiased for the true posterior.
+The estimator reports its own effective sample size, ESS = (Σw)² / Σw²; below a floor of 40 it
+stops pretending, says so in the banner, and falls back to the classic occurrence-matrix density
+map (every legal placement of every surviving ship, hit-covering placements weighted 25×).
+
+Against boards small enough to enumerate exactly, the sampler lands within ~1% of the true
+probabilities — there is a test that checks it. It reads only public information, never the
+defender's ship list, so it is an edge, not X-ray vision. Press the button again to stand the
+swarm down.
+
+### Devin Fusion
+
+Under the swarm button, and also Devin-only: arm **Devin Fusion** and your next order — spoken or
+clicked — goes up as a five-missile salvo instead of one shot. The named square is hit first, then
+the four squares around it; any of those already shelled are skipped and the salvo spills outward
+(corners, then the next ring) so five live missiles always hit the water, and it never wastes a
+shot on a square you have already taken or runs off the edge of the board. Cursor still answers
+once. Fusion disarms itself after the salvo, so the shot after it is an ordinary single one.
 
 ### Victory music
 
@@ -134,8 +155,8 @@ battleship/
   effects.py  missile flight + smoke, explosions, otter finisher
   game.py     placement UI, turn loop, AI, endgame
   session.py  headless game state machine (same rules, no I/O) for the browser
-  probability.py  Devin Security Swarm: placement-density heat map over the enemy grid
-  web.py      stdlib HTTP server: static files + /api/state, /api/fire, /api/new, /api/reroll
+  probability.py  Devin Security Swarm: Bayesian posterior (+ density fallback) over the enemy grid
+  web.py      stdlib HTTP server: static files + /api/state, /api/fire, /api/fusion, /api/new, /api/reroll
   static/     browser front-end: Wii board in CSS 3D, missiles, mic button
   __main__.py CLI entry point
 ```

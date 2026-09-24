@@ -279,6 +279,44 @@ body {
 }
 .grid.swarm .cell.swarm-best { box-shadow: inset 0 0 0 3px #12692f; }
 
+/* The odds, printed small enough to read past the markers. */
+.cell .odds {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 0.55rem;
+  font-weight: 700;
+  color: #26313a;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.65);
+  pointer-events: none;
+}
+
+.fusion-btn {
+  border-color: #a9c7e8;
+  color: #12507f;
+  background: linear-gradient(180deg, #fff, #dceaf8);
+  box-shadow: 0 6px 14px rgba(30, 110, 190, 0.2), inset 0 1px 0 #fff;
+}
+
+.fusion-btn .swarm-mark { background-color: #1c8ad6; }
+
+.fusion-btn[aria-pressed="true"] {
+  color: #fff;
+  border-color: #0f5d9b;
+  background: linear-gradient(180deg, #46a7ea, #1567b4);
+  box-shadow: 0 0 0 4px rgba(28, 138, 214, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  animation: fusion-ready 1.4s ease-in-out infinite;
+}
+
+.fusion-btn[aria-pressed="true"] .swarm-mark { background-color: #fff; }
+
+@keyframes fusion-ready {
+  50% { box-shadow: 0 0 0 9px rgba(28, 138, 214, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.4); }
+}
+
+.chip.fusion-chip { background: #1c8ad6; }
+
 .log ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: 0.85rem; }
 .log li { opacity: 0.85; }
 .log li:last-child { opacity: 1; font-weight: 600; }

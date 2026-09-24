@@ -86,10 +86,12 @@ class Handler(BaseHTTPRequestHandler):
             self._json(cls.session.state())
         elif self.path == "/api/fire":
             self._fire(payload)
+        elif self.path == "/api/fusion":
+            self._fire(payload, fusion=True)
         else:
             self._json({"error": "no such endpoint"}, 404)
 
-    def _fire(self, payload: dict) -> None:
+    def _fire(self, payload: dict, fusion: bool = False) -> None:
         try:
             if "coord" in payload:
                 row, col = parse_coord(str(payload["coord"]))
@@ -98,8 +100,9 @@ class Handler(BaseHTTPRequestHandler):
         except (KeyError, TypeError, ValueError) as exc:
             self._json({"error": str(exc) or "Use a coordinate like B7."}, 400)
             return
+        session = type(self).session
         try:
-            events = type(self).session.fire(row, col)
+            events = session.fusion(row, col) if fusion else session.fire(row, col)
         except ValueError as exc:
             self._json({"error": str(exc)}, 409)
             return

@@ -56,6 +56,55 @@ class SessionTests(unittest.TestCase):
         self.assertEqual(len(session.state()["away"]["ships"]), 5)
 
 
+class FusionTests(unittest.TestCase):
+    def test_a_salvo_is_the_square_plus_its_neighbours(self):
+        session = Session(seed=7)
+        self.assertEqual(
+            session.fusion_targets(4, 4),
+            [[4, 4], [3, 4], [4, 3], [4, 5], [5, 4]],
+        )
+
+    def test_a_salvo_spills_past_squares_already_shelled(self):
+        session = Session(seed=7)
+        session.ai.fire(3, 4)
+        session.ai.fire(4, 3)
+        targets = session.fusion_targets(4, 4)
+        self.assertNotIn([3, 4], targets)
+        self.assertNotIn([4, 3], targets)
+        self.assertEqual(len(targets), 5)
+        self.assertEqual(len(set(map(tuple, targets))), 5)
+
+    def test_a_salvo_stays_on_the_board_in_a_corner(self):
+        session = Session(seed=7)
+        targets = session.fusion_targets(0, 0)
+        self.assertEqual(targets[0], [0, 0])
+        self.assertEqual(len(targets), 5)
+        self.assertTrue(all(0 <= r < 10 and 0 <= c < 10 for r, c in targets))
+
+    def test_five_missiles_fly_and_cursor_answers_once(self):
+        session = Session(seed=7)
+        events = session.fusion(4, 4)
+        devin = [e for e in events if e["team"] == "devin"]
+        self.assertEqual(len(devin), 5)
+        self.assertTrue(all(e["fusion"] for e in devin))
+        self.assertEqual(len([e for e in events if e["team"] == "cursor"]), 1)
+        self.assertEqual(session.stats["devin_hits"] + session.stats["devin_misses"], 5)
+
+    def test_a_salvo_never_re_shells_and_stops_at_the_win(self):
+        session = Session(seed=7)
+        while not session.winner:
+            row, col = next(
+                (r, c)
+                for r in range(10)
+                for c in range(10)
+                if not session.ai.already_shot(r, c)
+            )
+            session.fusion(row, col)
+        self.assertEqual(session.winner, "devin")
+        with self.assertRaises(ValueError):
+            session.fusion(0, 0)
+
+
 class ApiTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -100,6 +149,15 @@ class ApiTests(unittest.TestCase):
         with self.assertRaises(urllib.error.HTTPError) as repeat:
             self.call("/api/fire", {"row": 0, "col": 0})
         self.assertEqual(repeat.exception.code, 409)
+
+    def test_fusion_endpoint_fires_a_five_shot_salvo(self):
+        self.call("/api/new", {})
+        payload = self.call("/api/fusion", {"coord": "E5"})
+        devin = [e for e in payload["events"] if e["team"] == "devin"]
+        self.assertEqual([e["coord"] for e in devin][0], "E5")
+        self.assertEqual(len(devin), 5)
+        stats = payload["state"]["stats"]
+        self.assertEqual(stats["devin_hits"] + stats["devin_misses"], 5)
 
     def test_reroll_is_only_legal_before_the_first_shot(self):
         self.call("/api/new", {})
