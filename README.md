@@ -93,6 +93,8 @@ once. Fusion disarms itself after the salvo, so the shot after it is an ordinary
 Devin's ships are clean grey steel. Cursor's are on a maintenance budget that ran out: rust
 streaking down the plating, a mismatched plate welded over the bow, a tarpaulin where a deckhouse
 window should be, a funnel knocked out of true still coughing smoke, and a permanent list to port.
+Every Cursor hull wears the Cursor cube amidships, and each square Devin lands a direct hit on is
+stamped with that cube in red on the hull itself.
 
 ### Winning the match
 

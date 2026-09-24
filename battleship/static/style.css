@@ -288,6 +288,21 @@ body {
 .boom.logo { width: 30px; height: 30px; background-color: #d0342c; }
 .ship .pip .logo { display: block; width: 20px; height: 20px; background-color: #d0342c; }
 .ship.devin .badge .logo { display: block; width: 14px; height: 14px; }
+/* Cursor's own mark: on the hull amidships, and stamped on every square Devin
+   lands a direct hit on. */
+.cube {
+  display: block;
+  background-color: #23231f;
+  -webkit-mask: url("cursor-cube.png") center / contain no-repeat;
+  mask: url("cursor-cube.png") center / contain no-repeat;
+}
+.ship.cursor .badge .cube { width: 14px; height: 15px; }
+.ship .pip .cube.struck {
+  width: 22px; height: 24px;
+  background-color: #d0342c;
+  filter: drop-shadow(0 0 5px rgba(255, 90, 40, 0.85));
+}
+.ship.sunk .pip .cube.struck { background-color: #b9beC2; filter: none; }
 .logo.swatch { display: inline-block; width: 11px; height: 11px; background-color: #d0342c; vertical-align: -1px; }
 .missile.cursor { color: #111; text-shadow: 0 0 8px rgba(0,0,0,0.5); }
 .smoke { color: #7d878f; animation: fade 900ms ease-out forwards; }

@@ -88,8 +88,8 @@ function shipNode(ship, team) {
 
   const badge = document.createElement("div");
   badge.className = "badge";
-  if (team === "devin") badge.innerHTML = '<span class="logo"></span>';
-  else badge.textContent = "◆";
+  badge.innerHTML =
+    team === "devin" ? '<span class="logo"></span>' : '<span class="cube"></span>';
   badge.style.left = `${w / 2 - 6}px`;
   badge.style.top = `${h / 2 - 18}px`;
   node.append(badge);
@@ -99,7 +99,7 @@ function shipNode(ship, team) {
     if (!hits.has(`${r},${c}`)) return;
     const pip = document.createElement("div");
     pip.className = "pip";
-    if (team === "cursor") pip.innerHTML = '<span class="logo"></span>';
+    if (team === "cursor") pip.innerHTML = '<span class="cube struck"></span>';
     else pip.textContent = ship.sunk ? "#" : "✸";
     pip.style.left = `${ship.horizontal ? i * CELL : 0}px`;
     pip.style.top = `${ship.horizontal ? 0 : i * CELL}px`;
