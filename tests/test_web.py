@@ -5,6 +5,7 @@ import urllib.error
 import urllib.request
 from http.server import ThreadingHTTPServer
 
+from battleship.board import format_coord
 from battleship.session import Session
 from battleship.web import Handler
 
@@ -100,6 +101,32 @@ class FusionTests(unittest.TestCase):
         self.assertEqual(session.winner, "devin")
         with self.assertRaises(ValueError):
             session.fusion(0, 0)
+
+
+class OutsourceTests(unittest.TestCase):
+    def test_a_missile_flies_at_every_square_of_the_hull(self):
+        session = Session(seed=7)
+        carrier = max(session.ai.ships, key=lambda ship: ship.size)
+        session.fire(*carrier.cells[0])
+        events = [e for e in session.outsource() if e["team"] == "devin"]
+        self.assertEqual(len(events), carrier.size)
+        self.assertEqual(
+            sorted(e["coord"] for e in events),
+            sorted(format_coord(r, c) for r, c in carrier.cells),
+        )
+        self.assertEqual(events[-1]["result"], "sunk")
+        self.assertTrue(carrier.sunk)
+
+    def test_squares_already_hit_do_not_score_twice(self):
+        session = Session(seed=7)
+        carrier = max(session.ai.ships, key=lambda ship: ship.size)
+        session.fire(*carrier.cells[0])
+        hits = session.stats["devin_hits"]
+        session.outsource()
+        # Three cognition missiles detonate a hull; the rest of the salvo is
+        # fireworks and must not pad the scoreboard.
+        self.assertEqual(session.stats["devin_hits"], hits + 2)
+        self.assertEqual(session.stats["devin_sunk"], 1)
 
 
 class ApiTests(unittest.TestCase):

@@ -192,11 +192,31 @@ class Session:
         target = max(afloat, key=lambda ship: ship.size)
         reveal = _ship_state(target, reveal=True)
         events: list[dict] = []
+        # One missile per square of the hull: a five-square Carrier takes five,
+        # even though three cognition missiles are enough to detonate her and
+        # squares Devin already hit need no second hole. Those extra missiles
+        # are for show and are fired first, so the salvo still ends on the shot
+        # that actually sinks her.
+        needed = min(EXPLOSION_THRESHOLD, target.size) - len(target.hits)
+        live = [cell for cell in target.cells if not self.ai.already_shot(*cell)][:needed]
         for row, col in target.cells:
-            if self.ai.already_shot(row, col):
+            if (row, col) in live:
                 continue
+            events.append({
+                "team": "devin",
+                "row": row,
+                "col": col,
+                "coord": format_coord(row, col),
+                "result": "hit",
+                "ship": target.name,
+                "exploded": False,
+                "hits": len(target.hits),
+                "restrike": True,
+            })
+        for row, col in live:
             events.append(self._shoot("devin", row, col))
-            events[-1]["outsourced"] = True
+        for event in events:
+            event["outsourced"] = True
         if events:
             events[0]["reveal"] = reveal
         if self.ai.defeated:
