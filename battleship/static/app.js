@@ -37,6 +37,13 @@ function buildGrid(node, clickable) {
   }
 }
 
+function shipCells(ship) {
+  return Array.from({ length: ship.size }, (_, i) => [
+    ship.row + (ship.horizontal ? 0 : i),
+    ship.col + (ship.horizontal ? i : 0),
+  ]);
+}
+
 function shipNode(ship, team) {
   const node = document.createElement("div");
   node.className = `ship ${team} ${ship.horizontal ? "horizontal" : "vertical"}`;
@@ -80,6 +87,17 @@ function shipNode(ship, team) {
   badge.style.left = `${w / 2 - 6}px`;
   badge.style.top = `${h / 2 - 18}px`;
   node.append(badge);
+
+  const hits = new Set((ship.hits || []).map(([r, c]) => `${r},${c}`));
+  shipCells(ship).forEach(([r, c], i) => {
+    if (!hits.has(`${r},${c}`)) return;
+    const pip = document.createElement("div");
+    pip.className = "pip";
+    pip.textContent = ship.sunk ? "#" : "✸";
+    pip.style.left = `${ship.horizontal ? i * CELL : 0}px`;
+    pip.style.top = `${ship.horizontal ? 0 : i * CELL}px`;
+    node.append(pip);
+  });
   return node;
 }
 
@@ -149,8 +167,7 @@ async function flyMissile(team, row, col) {
 
   const missile = document.createElement("div");
   missile.className = `missile ${team}`;
-  missile.textContent = team === "devin" ? "◉➤" : "◆➤";
-  if (team === "cursor") missile.style.transform += " scaleX(-1)";
+  missile.textContent = team === "devin" ? "◉➤" : "➤◆";
   grid.append(missile);
 
   const steps = 22;
@@ -256,9 +273,17 @@ async function finisher(team, shipName) {
   }
 }
 
+function cellNode(team, row, col) {
+  const grid = el(team === "devin" ? "away-grid" : "home-grid");
+  return grid.querySelector(`.cell[data-row="${row}"][data-col="${col}"]`);
+}
+
 async function playEvents(events) {
   for (const ev of events) {
+    const aim = cellNode(ev.team, ev.row, ev.col);
+    if (aim) aim.classList.add("aim");
     await flyMissile(ev.team, ev.row, ev.col);
+    if (aim) setTimeout(() => aim.classList.remove("aim"), 700);
     if (ev.result === "miss") {
       await boom(ev.team, ev.row, ev.col, "o", "1.1rem");
     } else if (ev.result === "hit") {
@@ -320,13 +345,14 @@ async function fireAt(row, col) {
 
 const NUMBERS = {
   one: 1, won: 1, two: 2, to: 2, too: 2, three: 3, tree: 3, four: 4, for: 4, fore: 4,
-  five: 5, six: 6, sex: 6, seven: 7, eight: 8, ate: 8, nine: 9, ten: 10,
+  five: 5, fife: 5, six: 6, sex: 6, seven: 7, eight: 8, ate: 8, ait: 8, nine: 9, niner: 9,
+  nein: 9, ten: 10,
 };
 const LETTER_WORDS = {
   alpha: "A", apple: "A", hey: "A", bee: "B", be: "B", bravo: "B", see: "C", sea: "C",
   charlie: "C", dee: "D", delta: "D", the: "D", echo: "E", ee: "E", ef: "F", foxtrot: "F",
-  gee: "G", golf: "G", jee: "G", aitch: "H", hotel: "H", eye: "I", india: "I", jay: "J",
-  juliet: "J",
+  gee: "G", golf: "G", jee: "G", ji: "G", aitch: "H", haych: "H", hotel: "H", eye: "I",
+  india: "I", aye: "A", ay: "A", jay: "J", jai: "J", juliet: "J",
 };
 
 /** "fire at D five" / "launch sonar on g-8" / "d5" -> "D5" */
