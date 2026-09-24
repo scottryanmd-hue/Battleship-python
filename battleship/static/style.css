@@ -36,7 +36,18 @@ body {
 .channel-sub { opacity: 0.85; font-size: 0.85rem; }
 .clock { margin-left: auto; font-variant-numeric: tabular-nums; }
 
-.console { max-width: 1120px; margin: 22px auto 90px; padding: 0 18px; display: grid; gap: 18px; }
+/* Boards on the left, a control rail pinned alongside them so no button needs a scroll. */
+.console {
+  max-width: 1400px; margin: 22px auto 90px; padding: 0 18px;
+  display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 18px; align-items: start;
+}
+.play { display: grid; gap: 18px; min-width: 0; }
+.rail { display: grid; gap: 14px; position: sticky; top: 18px; align-content: start; }
+.rail .card { padding: 14px 16px; }
+@media (max-width: 1080px) {
+  .console { grid-template-columns: minmax(0, 1fr); }
+  .rail { position: static; }
+}
 
 .card {
   background: linear-gradient(180deg, #ffffff, #f3f8fb);
@@ -292,7 +303,9 @@ body {
 .fleet li.sunk { opacity: 0.55; text-decoration: line-through; }
 
 /* ---- controls ---- */
-.controls { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 18px; }
+.controls { display: grid; gap: 12px; justify-items: stretch; }
+.controls .mic { justify-content: center; }
+.buttons .wii-btn { flex: 1; }
 .mic {
   display: flex; align-items: center; gap: 10px;
   border: none; cursor: pointer;
@@ -316,7 +329,9 @@ body {
 .wii-btn:hover { background: linear-gradient(180deg, #fff, #e2eef8); }
 
 /* ---- Devin Security Swarm ---- */
-.swarm-bar { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 18px; }
+.swarm-bar { display: grid; gap: 10px; }
+.swarm-bar .swarm-btn { justify-content: center; }
+.swarm-key { display: flex; flex-wrap: wrap; gap: 10px; }
 .swarm-btn {
   display: flex; align-items: center; gap: 10px;
   border: 1px solid #e4b9a6; border-radius: 999px; cursor: pointer;
