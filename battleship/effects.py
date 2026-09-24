@@ -137,6 +137,8 @@ FIREWORK_FRAMES = [
     [" ✦  ·  ✧  ✺  ✦  ✧  ·  ✦  ", "✺  ✹   ·  ✦ ✧ ✦  ·   ✹  ✺", " ·   ✦   ✧   ·   ✦   ·   "],
 ]
 FIREWORK_COLORS = [art.YELLOW, art.ORANGE, art.RED, art.GREEN, art.WII_BLUE]
+# The victory fanfare only has sound in browser mode; the terminal just hums.
+NOTES = ["  ♪    ♫      ♪ ", "    ♫    ♪   ♫  ", " ♪   ♫  ♪     ♫ ", "   ♫   ♪   ♫  ♪ "]
 
 
 def _fireworks(screen: Screen, ship: Ship) -> None:
@@ -150,7 +152,9 @@ def _fireworks(screen: Screen, ship: Ship) -> None:
                 art.ORANGE + art.BOLD,
             ),
             extra=panel(
-                sky + [""] + [art.color(line, art.ORANGE) for line in art.OTTER_BIG],
+                sky
+                + [art.color(NOTES[step % len(NOTES)], art.YELLOW)]
+                + [art.color(line, art.ORANGE) for line in art.OTTER_BIG],
                 title="OTTER CHANNEL",
                 accent=art.ORANGE,
             ),

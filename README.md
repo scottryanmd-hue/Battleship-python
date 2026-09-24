@@ -50,6 +50,14 @@ WebKit/Blink browser) and microphone permission — the button explains itself a
 API is missing, and clicking squares always works. The server binds to `127.0.0.1` only and keeps
 one game in memory; `( A ) New game` starts another.
 
+### Victory music
+
+Sinking a Cursor ship sets off fireworks, the otter and a short 80s-montage fanfare synthesised in
+the browser with the Web Audio API. To celebrate with your own track instead — a training-montage
+anthem, say — drop an audio file at `battleship/static/sounds/victory.mp3` (`.ogg`, `.wav` and
+`.m4a` work too) and the page plays that instead. Nothing copyrighted ships with the repo; supply
+your own licensed copy.
+
 ## How to play
 
 1. Choose `r` to have your five ships (Carrier 5, Battleship 4, Cruiser 3, Submarine 3,

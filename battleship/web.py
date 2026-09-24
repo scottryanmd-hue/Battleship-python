@@ -22,6 +22,10 @@ CONTENT_TYPES = {
     ".css": "text/css",
     ".js": "application/javascript",
     ".png": "image/png",
+    ".mp3": "audio/mpeg",
+    ".ogg": "audio/ogg",
+    ".wav": "audio/wav",
+    ".m4a": "audio/mp4",
 }
 
 

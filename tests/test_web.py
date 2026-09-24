@@ -114,6 +114,12 @@ class ApiTests(unittest.TestCase):
             with urllib.request.urlopen(self.url + path) as response:
                 self.assertIn(marker, response.read())
 
+    def test_missing_victory_track_is_a_clean_404(self):
+        """The page probes for an optional custom anthem on load."""
+        with self.assertRaises(urllib.error.HTTPError) as missing:
+            urllib.request.urlopen(self.url + "/sounds/victory.mp3")
+        self.assertEqual(missing.exception.code, 404)
+
 
 if __name__ == "__main__":
     unittest.main()

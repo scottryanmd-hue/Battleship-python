@@ -253,6 +253,79 @@ async function fireworks(duration = 2600) {
   }
 }
 
+/* ---------- victory music ----------
+   The Karate Kid montage track is copyrighted, so the built-in cue is an
+   original 80s-style fanfare synthesised in the browser. Drop your own file at
+   `battleship/static/sounds/victory.mp3` and that plays instead. */
+
+const ANTHEM_FILES = [
+  "sounds/victory.mp3", "sounds/victory.ogg", "sounds/victory.wav", "sounds/victory.m4a",
+];
+let anthem = null;
+let audioCtx = null;
+
+async function loadAnthem() {
+  for (const file of ANTHEM_FILES) {
+    try {
+      const res = await fetch(file);
+      if (!res.ok) continue;
+      anthem = new Audio(URL.createObjectURL(await res.blob()));
+      return;
+    } catch (err) {
+      /* keep looking */
+    }
+  }
+}
+
+// [semitones above C4, start beat, beats] — a rising "you did it" fanfare.
+const FANFARE = [
+  [7, 0, 0.5], [12, 0.5, 0.5], [16, 1, 0.5], [19, 1.5, 1],
+  [17, 2.5, 0.5], [16, 3, 0.5], [19, 3.5, 1.5],
+  [14, 5, 0.5], [17, 5.5, 0.5], [21, 6, 1.5],
+];
+const BASSLINE = [[0, 0], [0, 1], [5, 2], [7, 3], [0, 4], [5, 5], [7, 6], [0, 7]];
+const BEAT = 0.28;
+
+function pitch(semitones) {
+  return 261.63 * Math.pow(2, semitones / 12);
+}
+
+function blip(ctx, semitones, at, beats, type, level) {
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = type;
+  osc.frequency.value = pitch(semitones);
+  const start = ctx.currentTime + at * BEAT;
+  const end = start + beats * BEAT;
+  gain.gain.setValueAtTime(0.0001, start);
+  gain.gain.exponentialRampToValueAtTime(level, start + 0.02);
+  gain.gain.exponentialRampToValueAtTime(0.0001, end);
+  osc.connect(gain).connect(ctx.destination);
+  osc.start(start);
+  osc.stop(end + 0.05);
+}
+
+function playAnthem() {
+  if (anthem) {
+    anthem.currentTime = 0;
+    anthem.play().catch(() => {});
+    return;
+  }
+  const Ctx = window.AudioContext || window.webkitAudioContext;
+  if (!Ctx) return;
+  audioCtx = audioCtx || new Ctx();
+  audioCtx.resume();
+  FANFARE.forEach(([note, at, beats]) => {
+    blip(audioCtx, note, at, beats, "square", 0.14);
+    blip(audioCtx, note + 12, at, beats, "triangle", 0.05);
+  });
+  BASSLINE.forEach(([note, at]) => blip(audioCtx, note - 12, at, 0.9, "sawtooth", 0.09));
+}
+
+function stopAnthem() {
+  if (anthem) anthem.pause();
+}
+
 async function finisher(team, shipName) {
   const overlay = el("finisher");
   if (team === "devin") {
@@ -262,9 +335,11 @@ async function finisher(team, shipName) {
       `<div class="party-banner">${shipName || "Cursor ship"} sunk!</div>` +
       "</div>";
     overlay.classList.add("show", "party");
+    playAnthem();
     await fireworks(2600);
     await sleep(300);
     overlay.classList.remove("show", "party");
+    stopAnthem();
   } else {
     overlay.innerHTML = '<div class="cursor-logo">◆</div>';
     overlay.classList.add("show");
@@ -445,6 +520,7 @@ function tickClock() {
 async function boot() {
   buildGrid(el("home-grid"), false);
   buildGrid(el("away-grid"), true);
+  loadAnthem();
   state = await api("/api/state");
   paint();
   setupMic();
