@@ -485,19 +485,42 @@ async function fireAt(row, col) {
 
 /* ---------- speech ---------- */
 
+/* Dictation hears digits as words, and words as the wrong words. Only the
+   number slot — the word straight after a letter — is read through this table,
+   so a stray "won" in conversation still cannot shell anything. */
 const NUMBERS = {
-  one: 1, two: 2, three: 3, tree: 3, four: 4, five: 5, fife: 5, six: 6, seven: 7,
-  eight: 8, nine: 9, niner: 9, ten: 10,
+  one: 1, won: 1, wun: 1, juan: 1,
+  two: 2, too: 2, to: 2, tu: 2,
+  three: 3, tree: 3, free: 3, thre: 3,
+  four: 4, for: 4, fore: 4, faux: 4,
+  five: 5, fife: 5, hive: 5,
+  six: 6, sicks: 6, sex: 6,
+  seven: 7, sevin: 7,
+  eight: 8, ate: 8, ait: 8, hate: 8,
+  nine: 9, niner: 9, nein: 9,
+  ten: 10, tin: 10, tan: 10, then: 10,
 };
+/* Likewise for the row. "I" is the awkward one: spoken alone dictation writes
+   it as the pronoun, or as "eye", "hi", "high" or "aye", so every one of those
+   has to land on row I. */
 const LETTER_WORDS = {
-  alpha: "A", apple: "A", aye: "A", bee: "B", bravo: "B", sea: "C", charlie: "C",
-  dee: "D", delta: "D", echo: "E", ee: "E", ef: "F", foxtrot: "F", gee: "G", golf: "G",
-  jee: "G", aitch: "H", haych: "H", hotel: "H", eye: "I", india: "I", jay: "J",
-  juliet: "J",
+  alpha: "A", apple: "A", ay: "A",
+  bee: "B", be: "B", bravo: "B",
+  sea: "C", see: "C", cee: "C", charlie: "C",
+  dee: "D", de: "D", delta: "D",
+  echo: "E", ee: "E", eee: "E",
+  ef: "F", eff: "F", foxtrot: "F",
+  gee: "G", jee: "G", golf: "G",
+  aitch: "H", haych: "H", hotel: "H", age: "H",
+  eye: "I", aye: "I", hi: "I", high: "I", india: "I", ai: "I", ii: "I",
+  jay: "J", jae: "J", juliet: "J", jail: "J",
 };
 /* A square only goes up in flames when you actually order the shot: either the phrase carries a
    firing verb, or the whole utterance is nothing but the coordinate. */
 const ORDER = /\b(fire|firing|fired|launch|shoot|shot|strike|hit|bomb|target|attack|sonar|missile|square)\b/;
+
+/* Words allowed to sit between the row and the column without breaking the pair. */
+const FILLER = new Set(["number", "square", "column", "as", "in", "is", "at", "uh", "um"]);
 
 function word2letter(word) {
   return /^[a-j]$/.test(word) ? word.toUpperCase() : LETTER_WORDS[word] || null;
@@ -508,24 +531,38 @@ function word2number(word) {
   return value >= 1 && value <= 10 ? value : null;
 }
 
-/** "fire at D five" / "launch sonar on g-8" / "d5" -> "D5"; anything vaguer -> null */
+/** "fire at D five" / "launch sonar on g-8" / "I1" -> "D5"; anything vaguer -> null */
 function parseSpeech(text) {
-  const clean = text.toLowerCase().replace(/[.,!?]/g, " ").replace(/[-–]/g, " ");
+  const clean = text
+    .toLowerCase()
+    .replace(/[.,!?'’"]/g, " ")
+    .replace(/[-–—_/]/g, " ");
   const words = clean.split(/\s+/).filter(Boolean);
 
   let coord = null;
   for (let i = 0; i < words.length && !coord; i += 1) {
-    const glued = words[i].match(/^([a-j])(10|[1-9])$/);
+    // Dictation's pet mishearing: "I one" comes back as the phone.
+    if (words[i] === "iphone") {
+      coord = "I1";
+      break;
+    }
+    // "e8", "i1", "i10" — dictation often glues the pair into one token.
+    const glued = words[i].match(/^([a-j])\s?(10|[1-9])$/);
     if (glued) {
       coord = glued[1].toUpperCase() + glued[2];
       break;
     }
     const letter = word2letter(words[i]);
-    const number = letter && i + 1 < words.length ? word2number(words[i + 1]) : null;
-    if (letter && number) coord = `${letter}${number}`;
+    if (!letter) continue;
+    // The number can trail by a filler word: "fire at I, number one".
+    for (let j = i + 1; j < Math.min(i + 3, words.length) && !coord; j += 1) {
+      const number = word2number(words[j]);
+      if (number) coord = `${letter}${number}`;
+      else if (!FILLER.has(words[j])) break;
+    }
   }
   if (!coord) return null;
-  return ORDER.test(clean) || words.length <= 2 ? coord : null;
+  return ORDER.test(clean) || words.length <= 3 ? coord : null;
 }
 
 function setupMic() {
