@@ -71,10 +71,35 @@ body {
   border: 2px solid #d5e1ea;
   display: grid; place-content: center; text-align: center; line-height: 1.1;
 }
-.mii-devin { grid-area: miiL; box-shadow: 0 0 0 4px rgba(226, 118, 27, 0.18); }
-.mii-cursor { grid-area: miiR; box-shadow: 0 0 0 4px rgba(58, 63, 68, 0.15); }
+.mii-devin { grid-area: miiL; box-shadow: 0 0 0 4px rgba(226, 118, 27, 0.18); overflow: hidden; }
+.mii-devin img { width: 100%; height: 100%; object-fit: cover; }
 .mii span { font-size: 1.1rem; }
 .mii small { display: block; opacity: 0.7; }
+
+/* Cursor's consolation: a second-place ribbon where their Mii used to be. */
+.mii-cursor {
+  grid-area: miiR;
+  position: relative;
+  background: none; border: 0; box-shadow: none;
+}
+.mii-cursor .medal {
+  position: relative; z-index: 1;
+  width: 52px; height: 52px; border-radius: 50%;
+  display: grid; place-content: center;
+  font-size: 1.05rem; font-weight: 800; color: #4a5158;
+  background: radial-gradient(circle at 34% 28%, #fff, #cfd6dc 55%, #9aa4ad);
+  border: 3px solid #b9c2c9;
+  box-shadow: 0 4px 8px rgba(30, 80, 120, 0.25), inset 0 1px 0 #fff;
+  margin-top: -14px;
+}
+.mii-cursor .medal sup { font-size: 0.6rem; }
+.mii-cursor .tail {
+  position: absolute; top: 46px; width: 16px; height: 34px;
+  background: linear-gradient(180deg, #7f8790, #59616a);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 74%, 0 100%);
+}
+.mii-cursor .tail.left { left: 20px; transform: rotate(10deg); }
+.mii-cursor .tail.right { right: 20px; transform: rotate(-10deg); }
 .score { grid-area: score; text-align: center; }
 .teams { display: flex; justify-content: space-around; font-size: 0.8rem; letter-spacing: 0.35em; opacity: 0.7; }
 .big { font-size: 2.6rem; font-weight: 700; color: var(--wii-blue); }
