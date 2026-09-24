@@ -185,8 +185,77 @@ body {
   color: #ffd23f; font-weight: 700; font-size: 1.1rem;
   text-shadow: 0 0 6px rgba(190, 40, 20, 0.9);
 }
+/* ---- the Cursor fleet has a maintenance budget problem ----
+   Same geometry as Devin's ships, but rust-streaked plating, welded-on patch
+   plates, a peeling deckhouse and a funnel that lost its argument with a crane. */
+.ship.cursor {
+  /* Streaks weeping from the scuppers plus three corroded patches, reused by
+     the sunk hull so a wreck keeps its rust. */
+  --rust:
+    repeating-linear-gradient(90deg,
+      rgba(118, 62, 28, 0) 0 7px, rgba(118, 62, 28, 0.26) 7px 10px, rgba(118, 62, 28, 0) 10px 24px),
+    radial-gradient(ellipse at 24% 72%, rgba(126, 63, 25, 0.55), rgba(126, 63, 25, 0) 46%),
+    radial-gradient(ellipse at 66% 26%, rgba(92, 50, 24, 0.45), rgba(92, 50, 24, 0) 40%),
+    radial-gradient(ellipse at 88% 62%, rgba(70, 40, 22, 0.4), rgba(70, 40, 22, 0) 38%);
+  /* She lists a couple of degrees; nobody has pumped the ballast in a while. */
+  transform: rotate(-2.2deg);
+}
+.ship.cursor.vertical { transform: rotate(2deg); }
+.ship.cursor .hull {
+  background: var(--rust), linear-gradient(180deg, #9ba09f, #7d8285 55%, #4f5459);
+  box-shadow: 0 8px 12px rgba(15, 50, 80, 0.45), inset 0 2px 0 rgba(255, 255, 255, 0.22),
+    inset 0 -6px 10px rgba(40, 20, 8, 0.35);
+  filter: saturate(0.82);
+  transform: translateZ(10px) rotate(-1.4deg);
+}
+.ship.cursor.vertical .hull { transform: translateZ(10px) rotate(1.4deg); }
+/* A mismatched plate welded over a hole in the bow. */
+.ship.cursor .hull::after {
+  content: ""; position: absolute; left: 14%; top: 34%; width: 16%; height: 34%;
+  background: linear-gradient(180deg, #7a6a5c, #5d5148);
+  border: 1px dashed rgba(30, 20, 12, 0.5); border-radius: 2px;
+  box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.4);
+}
+.ship.cursor .deck {
+  background: linear-gradient(180deg, #cdd0ca 40%, #a6a79f 41%, #8f9089);
+  box-shadow: 0 5px 7px rgba(15, 50, 80, 0.35), inset 0 -3px 6px rgba(60, 35, 15, 0.35);
+  border-radius: 5px 2px 6px 3px;
+  transform: translateZ(22px) rotate(-1deg);
+}
+/* Tarpaulin taped over a window that never got reglazed. */
+.ship.cursor .deck::after {
+  content: ""; position: absolute; right: 12%; top: 22%; width: 26%; height: 46%;
+  background: repeating-linear-gradient(45deg, #6f6a62 0 3px, #565149 3px 6px);
+  opacity: 0.85; border-radius: 2px;
+}
+.ship.cursor .funnel {
+  background: linear-gradient(180deg, #8a7b6a, #5a4c3f);
+  transform: translateZ(34px) rotate(-11deg) skewX(-6deg);
+  box-shadow: 0 4px 6px rgba(15, 50, 80, 0.4), inset 0 -3px 4px rgba(40, 20, 8, 0.5);
+}
+/* The exhaust of an engine well past its last service. */
+.ship.cursor .funnel::after {
+  content: ""; position: absolute; left: 2px; bottom: 9px; width: 7px; height: 7px;
+  border-radius: 50%; background: rgba(70, 70, 70, 0.4);
+  animation: rust-smoke 3.2s ease-out infinite;
+}
+@keyframes rust-smoke {
+  0% { transform: translate(0, 0) scale(0.5); opacity: 0.5; }
+  100% { transform: translate(7px, -22px) scale(2.1); opacity: 0; }
+}
+/* Rust bleeding down the stern plates. */
+.ship.cursor .deck::before {
+  content: ""; position: absolute; left: 6%; bottom: -55%; width: 18%; height: 60%;
+  background: linear-gradient(180deg, rgba(126, 63, 25, 0.75), rgba(126, 63, 25, 0));
+  border-radius: 0 0 40% 40%;
+}
+.ship.cursor .badge { opacity: 0.55; text-shadow: 0 1px 0 rgba(255, 255, 255, 0.25); }
 .ship.sunk .pip { color: #ff6b3d; }
 .ship.sunk .hull { background: linear-gradient(180deg, #6d7379, #3f444a); filter: grayscale(1) brightness(0.7); }
+.ship.cursor.sunk .hull {
+  background: var(--rust), linear-gradient(180deg, #6d7379, #3f444a);
+  filter: grayscale(0.45) brightness(0.74);
+}
 .ship.sunk { opacity: 0.85; }
 
 /* ---- missiles, smoke, splashes ---- */

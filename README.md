@@ -88,6 +88,12 @@ the four squares around it; any of those already shelled are skipped and the sal
 shot on a square you have already taken or runs off the edge of the board. Cursor still answers
 once. Fusion disarms itself after the salvo, so the shot after it is an ordinary single one.
 
+### The fleets
+
+Devin's ships are clean grey steel. Cursor's are on a maintenance budget that ran out: rust
+streaking down the plating, a mismatched plate welded over the bow, a tarpaulin where a deckhouse
+window should be, a funnel knocked out of true still coughing smoke, and a permanent list to port.
+
 ### Winning the match
 
 When the last Cursor hull goes down, the otter surfaces with a clam shell branded with the Cursor
