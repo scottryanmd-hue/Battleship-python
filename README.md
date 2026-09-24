@@ -12,14 +12,31 @@ hull below — spanning the squares they occupy. Cursor's stay hidden until you 
 
 ## Play it
 
+No install at all: **[play it in your browser](https://scottryanmd-hue.github.io/Battleship-python/)**
+(enable GitHub Pages on this repo once — Settings → Pages → Source: GitHub Actions).
+
+Or clone it:
+
 ```bash
 git clone https://github.com/scottryanmd-hue/Battleship-python.git
 cd Battleship-python
-python3 -m battleship --web     # the board in your browser, with the mic button
+open index.html                 # the web build: no server, no Python
+python3 -m battleship --web     # the same board served locally
 python3 -m battleship           # or the terminal version
 ```
 
 Python 3.10+, no dependencies to install.
+
+### The web build
+
+`index.html` at the root is the whole game. Opened from a static host — GitHub Pages, or the file
+itself — there is no Python behind it, so the rules run in the page: `battleship/static/engine.js`
+is the port of `board.py` and `session.py`, placing both fleets, firing Cursor's shots, and
+answering Fusion, SWE-2 and Outsourced IT. `python3 -m battleship --web` serves that same page and
+answers those calls from Python instead, so both modes play the same game.
+
+The one difference: the Security Swarm's heat map is the placement-density estimate offline, not
+the Monte Carlo posterior the Python engine computes — the page labels which one it is showing.
 
 ## Run it
 
@@ -185,6 +202,7 @@ your own licensed copy.
 ## Layout
 
 ```
+index.html    the web build's page: the board, served or opened straight from disk
 battleship/
   board.py    grid, ship placement, firing rules, 3-missile detonation
   render.py   Wii panels/channel bar, board drawing, scoreboard, side-by-side layout
@@ -194,6 +212,7 @@ battleship/
   probability.py  Devin Security Swarm: Bayesian posterior (+ density fallback) over the enemy grid
   web.py      stdlib HTTP server: static files + /api/state, /api/fire, /api/fusion, /api/swe2,
               /api/outsource, /api/new, /api/reroll
-  static/     browser front-end: Wii board in CSS 3D, missiles, mic button
+  static/     browser front-end: Wii board in CSS 3D, missiles, mic button, and
+              engine.js — the rules in JavaScript, for when there is no server
   __main__.py CLI entry point
 ```

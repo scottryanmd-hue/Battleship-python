@@ -4,6 +4,9 @@
 
 const SIZE = 10;
 const LETTERS = "ABCDEFGHIJ";
+/* The page lives at the repository root and this script beside the artwork, so
+   images and sounds are addressed relative to the script, not the page. */
+const ASSETS = new URL(".", document.currentScript.src).href;
 /* Square size is set in CSS and scales with the window, so read it rather than
    assume it: ships, missiles and markers are positioned in these pixels. */
 let CELL = 40;
@@ -361,7 +364,8 @@ async function fireworks(duration = 2600) {
    `battleship/static/sounds/victory.mp3` and that plays instead. */
 
 const ANTHEM_FILES = [
-  "sounds/victory.mp3", "sounds/victory.ogg", "sounds/victory.wav", "sounds/victory.m4a",
+  `${ASSETS}sounds/victory.mp3`, `${ASSETS}sounds/victory.ogg`,
+  `${ASSETS}sounds/victory.wav`, `${ASSETS}sounds/victory.m4a`,
 ];
 let anthem = null;
 let audioCtx = null;
@@ -433,7 +437,7 @@ async function finisher(team, shipName) {
   if (team === "devin") {
     overlay.innerHTML =
       '<div class="party-stage">' +
-      '<img class="otter-pic" src="otter.png" alt="The Devin otter celebrating">' +
+      `<img class="otter-pic" src="${ASSETS}otter.png" alt="The Devin otter celebrating">` +
       `<div class="party-banner">${shipName || "Cursor ship"} sunk!</div>` +
       "</div>";
     overlay.classList.add("show", "party");
@@ -460,7 +464,7 @@ async function victoryParty() {
     '<div class="shell-half top"></div><div class="shell-half bottom"></div>' +
     '<div class="shell-seam"></div>' +
     "</div>" +
-    '<img class="otter-pic" src="otter.png" alt="The Devin otter celebrating">' +
+    `<img class="otter-pic" src="${ASSETS}otter.png" alt="The Devin otter celebrating">` +
     '<div class="party-banner">Devin wins!</div>' +
     "</div>";
   overlay.classList.add("show", "party", "finale");
@@ -513,15 +517,30 @@ async function playEvents(events, hurry) {
 
 /* ---------- server calls ---------- */
 
+/* Set on the first call: `python3 -m battleship --web` answers /api itself,
+   a static host (GitHub Pages) has no Python behind it and engine.js plays
+   the game in the page instead. */
+let offline = false;
+
 async function api(path, body) {
-  const res = await fetch(path, {
-    method: body ? "POST" : "GET",
-    headers: { "Content-Type": "application/json" },
-    body: body ? JSON.stringify(body) : undefined,
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || "Something went wrong.");
-  return data;
+  if (offline) return window.LocalEngine.handle(path, body);
+  try {
+    const res = await fetch(path, {
+      method: body ? "POST" : "GET",
+      headers: { "Content-Type": "application/json" },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Something went wrong.");
+    return data;
+  } catch (err) {
+    if (offline || !window.LocalEngine || !(err instanceof TypeError || err instanceof SyntaxError)) {
+      throw err;
+    }
+    /* No server answered, or it answered with a page instead of JSON. */
+    offline = true;
+    return window.LocalEngine.handle(path, body);
+  }
 }
 
 function disarmFusion() {
