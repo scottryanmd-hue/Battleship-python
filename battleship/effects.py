@@ -12,7 +12,7 @@ TRAIL_CHARS = ["˙", "°", "∘", "·"]
 def _launch_lines(team: str) -> list[str]:
     if team == "devin":
         ship = art.ship_broadside("U.S.S. DEVIN", "DEVIN", art.COGNITION_GLYPH, art.ORANGE)
-        body = ship + [art.color("   ⬢➤  launching cognition missile...", art.ORANGE + art.BOLD)]
+        body = ship + [art.color("   ◉➤  launching cognition missile...", art.ORANGE + art.BOLD)]
         return panel(body, title="LAUNCH", accent=art.ORANGE, width=30)
     ship = art.ship_broadside("C.S.S. CURSOR", "CURSOR", art.CURSOR_GLYPH, art.INK)
     body = ship + [art.color("   ◆➤  Cursor returns fire...", art.INK + art.BOLD)]
@@ -104,7 +104,7 @@ def otter_finisher(screen: Screen, ship: Ship) -> None:
             extra=panel(
                 [
                     art.color(" " * step + "🦦💨", art.ORANGE),
-                    art.color(" " * max(0, step - 2) + "  ⬢ ⬢ ⬢", art.SOFT),
+                    art.color(" " * max(0, step - 2) + "  ◉ ◉ ◉", art.SOFT),
                 ],
                 title="OTTER CHANNEL",
                 accent=art.ORANGE,
@@ -121,7 +121,7 @@ def otter_finisher(screen: Screen, ship: Ship) -> None:
         ),
         extra=panel(
             [art.color(line, art.ORANGE) for line in art.OTTER_BIG]
-            + ["", art.color("     ⬢  C O G N I T I O N   S T R I K E  ⬢", art.ORANGE + art.BOLD)],
+            + ["", art.color("     ◉  C O G N I T I O N   S T R I K E  ◉", art.ORANGE + art.BOLD)],
             title="OTTER CHANNEL",
             accent=art.ORANGE,
         ),

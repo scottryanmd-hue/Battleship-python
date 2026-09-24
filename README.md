@@ -1,4 +1,4 @@
-# ⬢ Battleship: Devin vs Cursor 🦦
+# ◉ Battleship: Devin vs Cursor 🦦
 
 A terminal Battleship game where **HOME = Devin** (cognition-logo missiles, otter finishers) plays
 **AWAY = Cursor** (a random-firing AI). Ships, shots and sinkings are animated right on the 10×10
@@ -38,7 +38,7 @@ python3 -m battleship --seed 42     # reproducible ship placement and AI shots
 
 ## The flair
 
-- Every Devin shot launches a `⬢` **cognition missile** off the deck of your ship; it flies across
+- Every Devin shot launches a `◉` **cognition missile** off the deck of your ship; it flies across
   the target grid leaving a fading smoke trail (`˙ ° ∘ ·`) before it lands.
 - Cursor fires `◆` missiles the same way, from the opposite edge, at your Devin ships.
 - A miss buries itself in the water at that square (`o`); a hit burns as `✸`.
@@ -49,7 +49,7 @@ python3 -m battleship --seed 42     # reproducible ship placement and AI shots
   number, and meters for hits, misses, ships sunk and remaining fleet.
 
 ```
- 🦦  B A T T L E S H I P   C H A N N E L    ⬢ vs ◆                 Wed  21:23
+ 🦦  B A T T L E S H I P   C H A N N E L    ◉ vs ◆                 Wed  21:23
 ╭─ SCOREBOARD ───────────────────────────────────────────────────────────────╮
 │  ╭─────╮              H O M E                A W A Y              ╭─────╮  │
 │  │ ◕ ◕ │                         3  -  1                          │ ● ● │  │
@@ -71,7 +71,7 @@ python3 -m battleship --seed 42     # reproducible ship placement and AI shots
 | --- | --- |
 | `·` | unexplored water |
 | `◀███▶` / `▐▲▌` | a grey hull sitting across the squares it occupies, bow to stern |
-| `⬢` / `◆` | the team logo painted amidships (Devin on your fleet, Cursor on theirs) |
+| `◉` / `◆` | the team logo painted amidships (Devin on your fleet, Cursor on theirs) |
 | `o` | miss |
 | `✸` | hit |
 | `#` | sunk hull |

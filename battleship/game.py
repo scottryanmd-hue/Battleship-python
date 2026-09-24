@@ -90,7 +90,11 @@ class Game:
             )
             raw = self.ask(art.color("  Target: ", art.ORANGE))
             if raw.strip().lower() in {"q", "quit", "exit"}:
-                raise SystemExit(art.color("\n  Devin resigns. Cursor takes the trophy.\n", art.INK))
+                raise SystemExit(
+                    "\n"
+                    + fill(art.color("  Devin resigns. Cursor takes the trophy.", art.INK), ARENA_W, art.BG_WHITE)
+                    + "\n"
+                )
             try:
                 row, col = parse_coord(raw)
             except ValueError as exc:

@@ -77,7 +77,7 @@ def panel(
     width: int | None = None,
 ) -> list[str]:
     """A glossy rounded Wii tile wrapped around some content."""
-    inner = width or max([visible_len(l) for l in lines] + [visible_len(title) + 6])
+    inner = max([width or 0] + [visible_len(l) for l in lines] + [visible_len(title) + 6])
     inner += 2
     edge = accent + bg
 
@@ -97,7 +97,7 @@ def panel(
 def header() -> list[str]:
     """The blue channel bar that tops every Wii screen."""
     clock = datetime.now().strftime("%a  %H:%M")
-    left = " 🦦  B A T T L E S H I P   C H A N N E L    ⬢ vs ◆"
+    left = " 🦦  B A T T L E S H I P   C H A N N E L    ◉ vs ◆"
     gap = max(1, ARENA_W - display_width(left) - display_width(clock) - 1)
     line = fill(
         art.color(left, art.BOLD) + " " * gap + art.color(clock + " ", art.SILVER),
