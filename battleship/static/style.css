@@ -76,30 +76,37 @@ body {
 .mii span { font-size: 1.1rem; }
 .mii small { display: block; opacity: 0.7; }
 
-/* Cursor's consolation: a second-place ribbon where their Mii used to be. */
+/* Cursor's crest: a bottle of glue. */
 .mii-cursor {
   grid-area: miiR;
   position: relative;
   background: none; border: 0; box-shadow: none;
 }
-.mii-cursor .medal {
-  position: relative; z-index: 1;
-  width: 52px; height: 52px; border-radius: 50%;
-  display: grid; place-content: center;
-  font-size: 1.05rem; font-weight: 800; color: #4a5158;
-  background: radial-gradient(circle at 34% 28%, #fff, #cfd6dc 55%, #9aa4ad);
-  border: 3px solid #b9c2c9;
-  box-shadow: 0 4px 8px rgba(30, 80, 120, 0.25), inset 0 1px 0 #fff;
-  margin-top: -14px;
+.mii-cursor .glue-body {
+  position: absolute; left: 22px; top: 26px;
+  width: 32px; height: 40px; border-radius: 8px 8px 12px 12px;
+  background: linear-gradient(100deg, #fdfdfd, #dfe6ec 55%, #b9c4cd);
+  border: 2px solid #c3ccd4;
+  box-shadow: inset 0 2px 0 #fff, 0 4px 8px rgba(30, 80, 120, 0.2);
 }
-.mii-cursor .medal sup { font-size: 0.6rem; }
-.mii-cursor .tail {
-  position: absolute; top: 46px; width: 16px; height: 34px;
-  background: linear-gradient(180deg, #7f8790, #59616a);
-  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 74%, 0 100%);
+.mii-cursor .glue-body::after {
+  content: "GLUE";
+  position: absolute; left: 0; right: 0; top: 12px;
+  text-align: center; font-size: 0.5rem; font-weight: 800;
+  letter-spacing: 0.06em; color: #e2761b;
 }
-.mii-cursor .tail.left { left: 20px; transform: rotate(10deg); }
-.mii-cursor .tail.right { right: 20px; transform: rotate(-10deg); }
+.mii-cursor .glue-cap {
+  position: absolute; left: 31px; top: 6px;
+  width: 14px; height: 22px;
+  background: linear-gradient(180deg, #f6a23c, #d9761a);
+  clip-path: polygon(38% 0, 62% 0, 100% 100%, 0 100%);
+  border-radius: 3px;
+}
+.mii-cursor .glue-drip {
+  position: absolute; left: 36px; top: 24px;
+  width: 7px; height: 9px; border-radius: 0 0 50% 50% / 0 0 70% 70%;
+  background: #f3f6f8; box-shadow: 0 0 0 1px #d3dbe1;
+}
 .score { grid-area: score; text-align: center; }
 .teams { display: flex; justify-content: space-around; font-size: 0.8rem; letter-spacing: 0.35em; opacity: 0.7; }
 .big { font-size: 2.6rem; font-weight: 700; color: var(--wii-blue); }
@@ -491,6 +498,14 @@ body {
 }
 
 .chip.fusion-chip { background: #1c8ad6; }
+.chip.swe2-chip { background: #7b4fd6; }
+.chip.outsource-chip { background: #2f9e44; }
+
+.swe2-btn { border-color: #c3b0ea; color: #4a2c8f; }
+.swe2-btn .swarm-mark { background-color: #7b4fd6; }
+.outsource-btn { border-color: #a9dcb6; color: #1d6b32; }
+.outsource-btn .swarm-mark { background-color: #2f9e44; }
+.swarm-btn[disabled] { opacity: 0.55; cursor: not-allowed; }
 
 .log ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: 0.85rem; }
 .log li { opacity: 0.85; }

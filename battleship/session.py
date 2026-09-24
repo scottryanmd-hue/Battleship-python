@@ -15,7 +15,10 @@ from .board import EXPLOSION_THRESHOLD, FLEET, SIZE, Board, Ship, format_coord
 from .probability import heatmap
 
 #: Squares a Devin Fusion salvo puts in the water, the aimed one included.
-FUSION_SHOTS = 5
+FUSION_SHOTS = 2
+
+#: Columns (1-based) SWE-2 walks end to end.
+SWE2_COLUMNS = (1, 4, 6)
 
 
 def _ship_state(ship: Ship, reveal: bool) -> dict | None:
@@ -159,8 +162,51 @@ class Session:
                 targets.append([r, c])
         return targets
 
+    def swe2(self) -> list[dict]:
+        """SWE-2 sweep: every open square in columns 1, 4 and 6, then Cursor replies."""
+        if self.winner is not None:
+            raise ValueError("The game is already over.")
+        events: list[dict] = []
+        for column in SWE2_COLUMNS:
+            col = column - 1
+            for row in range(SIZE):
+                if self.ai.already_shot(row, col):
+                    continue
+                events.append(self._shoot("devin", row, col))
+                events[-1]["barrage"] = True
+                if self.ai.defeated:
+                    self.winner = "devin"
+                    return events
+        if not events:
+            raise ValueError("Columns 1, 4 and 6 are already shelled out.")
+        self._cursor_reply(events)
+        return events
+
+    def outsource(self) -> list[dict]:
+        """Outsourced IT: Cursor's largest surviving hull surfaces and goes down."""
+        if self.winner is not None:
+            raise ValueError("The game is already over.")
+        afloat = [ship for ship in self.ai.ships if not ship.sunk]
+        if not afloat:
+            raise ValueError("Cursor has nothing left afloat.")
+        target = max(afloat, key=lambda ship: ship.size)
+        reveal = _ship_state(target, reveal=True)
+        events: list[dict] = []
+        for row, col in target.cells:
+            if self.ai.already_shot(row, col):
+                continue
+            events.append(self._shoot("devin", row, col))
+            events[-1]["outsourced"] = True
+        if events:
+            events[0]["reveal"] = reveal
+        if self.ai.defeated:
+            self.winner = "devin"
+            return events
+        self._cursor_reply(events)
+        return events
+
     def fusion(self, row: int, col: int) -> list[dict]:
-        """A Devin Fusion salvo: five missiles at once, then one Cursor reply."""
+        """A Devin Fusion salvo: the called square plus one neighbour, then Cursor replies."""
         self._check_target(row, col)
         events = []
         for r, c in self.fusion_targets(row, col):

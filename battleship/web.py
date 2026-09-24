@@ -88,8 +88,21 @@ class Handler(BaseHTTPRequestHandler):
             self._fire(payload)
         elif self.path == "/api/fusion":
             self._fire(payload, fusion=True)
+        elif self.path == "/api/swe2":
+            self._salvo(cls.session.swe2)
+        elif self.path == "/api/outsource":
+            self._salvo(cls.session.outsource)
         else:
             self._json({"error": "no such endpoint"}, 404)
+
+    def _salvo(self, action) -> None:
+        """Run a Devin-only special that needs no coordinate."""
+        try:
+            events = action()
+        except ValueError as exc:
+            self._json({"error": str(exc)}, 409)
+            return
+        self._json({"events": events, "state": type(self).session.state()})
 
     def _fire(self, payload: dict, fusion: bool = False) -> None:
         try:

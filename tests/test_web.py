@@ -57,12 +57,9 @@ class SessionTests(unittest.TestCase):
 
 
 class FusionTests(unittest.TestCase):
-    def test_a_salvo_is_the_square_plus_its_neighbours(self):
+    def test_a_salvo_is_the_square_plus_a_neighbour(self):
         session = Session(seed=7)
-        self.assertEqual(
-            session.fusion_targets(4, 4),
-            [[4, 4], [3, 4], [4, 3], [4, 5], [5, 4]],
-        )
+        self.assertEqual(session.fusion_targets(4, 4), [[4, 4], [3, 4]])
 
     def test_a_salvo_spills_past_squares_already_shelled(self):
         session = Session(seed=7)
@@ -71,24 +68,24 @@ class FusionTests(unittest.TestCase):
         targets = session.fusion_targets(4, 4)
         self.assertNotIn([3, 4], targets)
         self.assertNotIn([4, 3], targets)
-        self.assertEqual(len(targets), 5)
-        self.assertEqual(len(set(map(tuple, targets))), 5)
+        self.assertEqual(len(targets), 2)
+        self.assertEqual(len(set(map(tuple, targets))), 2)
 
     def test_a_salvo_stays_on_the_board_in_a_corner(self):
         session = Session(seed=7)
         targets = session.fusion_targets(0, 0)
         self.assertEqual(targets[0], [0, 0])
-        self.assertEqual(len(targets), 5)
+        self.assertEqual(len(targets), 2)
         self.assertTrue(all(0 <= r < 10 and 0 <= c < 10 for r, c in targets))
 
-    def test_five_missiles_fly_and_cursor_answers_once(self):
+    def test_two_missiles_fly_and_cursor_answers_once(self):
         session = Session(seed=7)
         events = session.fusion(4, 4)
         devin = [e for e in events if e["team"] == "devin"]
-        self.assertEqual(len(devin), 5)
+        self.assertEqual(len(devin), 2)
         self.assertTrue(all(e["fusion"] for e in devin))
         self.assertEqual(len([e for e in events if e["team"] == "cursor"]), 1)
-        self.assertEqual(session.stats["devin_hits"] + session.stats["devin_misses"], 5)
+        self.assertEqual(session.stats["devin_hits"] + session.stats["devin_misses"], 2)
 
     def test_a_salvo_never_re_shells_and_stops_at_the_win(self):
         session = Session(seed=7)
@@ -150,14 +147,30 @@ class ApiTests(unittest.TestCase):
             self.call("/api/fire", {"row": 0, "col": 0})
         self.assertEqual(repeat.exception.code, 409)
 
-    def test_fusion_endpoint_fires_a_five_shot_salvo(self):
+    def test_fusion_endpoint_fires_a_two_shot_salvo(self):
         self.call("/api/new", {})
         payload = self.call("/api/fusion", {"coord": "E5"})
         devin = [e for e in payload["events"] if e["team"] == "devin"]
         self.assertEqual([e["coord"] for e in devin][0], "E5")
-        self.assertEqual(len(devin), 5)
+        self.assertEqual(len(devin), 2)
         stats = payload["state"]["stats"]
-        self.assertEqual(stats["devin_hits"] + stats["devin_misses"], 5)
+        self.assertEqual(stats["devin_hits"] + stats["devin_misses"], 2)
+
+    def test_swe2_endpoint_sweeps_three_columns(self):
+        self.call("/api/new", {})
+        payload = self.call("/api/swe2", {})
+        devin = [e for e in payload["events"] if e["team"] == "devin"]
+        self.assertEqual(sorted({e["coord"][1:] for e in devin}), ["1", "4", "6"])
+        self.assertEqual(len(devin), 30)
+
+    def test_outsourced_it_sinks_the_biggest_hull_afloat(self):
+        self.call("/api/new", {})
+        payload = self.call("/api/outsource", {})
+        devin = [e for e in payload["events"] if e["team"] == "devin"]
+        self.assertEqual(devin[0]["reveal"]["name"], "Carrier")
+        self.assertEqual(devin[-1]["result"], "sunk")
+        fleet = {s["name"]: s for s in payload["state"]["away"]["fleet"]}
+        self.assertTrue(fleet["Carrier"]["sunk"])
 
     def test_reroll_is_only_legal_before_the_first_shot(self):
         self.call("/api/new", {})

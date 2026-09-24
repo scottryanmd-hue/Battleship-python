@@ -23,9 +23,8 @@
         <div class="round">ROUND <span id="round">1</span></div>
         <div class="names"><span class="devin">🦦 DEVIN</span><span class="cursor">CURSOR ◆</span></div>
       </div>
-      <div class="mii mii-cursor" title="Second place">
-        <i class="tail left"></i><i class="tail right"></i>
-        <span class="medal">2<sup>nd</sup></span>
+      <div class="mii mii-cursor" title="Cursor: glued together" aria-label="Glue">
+        <i class="glue-cap"></i><i class="glue-body"></i><i class="glue-drip"></i>
       </div>
       <div class="meters" id="meters"></div>
     </section>
@@ -78,14 +77,40 @@
 
     <section class="card swarm-bar fusion-bar">
       <button id="fusion" class="swarm-btn fusion-btn" aria-pressed="false"
-              title="Devin-only: one call, five missiles">
+              title="Devin-only: one call, two missiles">
         <span class="logo swarm-mark"></span><span>Devin Fusion</span>
       </button>
       <div class="swarm-note" id="fusion-note">
-        Devin team only — arm it and your next called square goes up in a five-missile salvo.
+        Devin team only — arm it and your next called square goes up in a double-missile salvo.
       </div>
       <div class="swarm-key fusion-key">
-        <span><i class="chip fusion-chip"></i> 5 shots: your square + the nearest open ones</span>
+        <span><i class="chip fusion-chip"></i> 2 shots: your square + the nearest open one</span>
+      </div>
+    </section>
+
+    <section class="card swarm-bar swe2-bar">
+      <button id="swe2" class="swarm-btn swe2-btn"
+              title="Devin-only: sweep columns 1, 4 and 6 end to end">
+        <span class="logo swarm-mark"></span><span>SWE-2</span>
+      </button>
+      <div class="swarm-note" id="swe2-note">
+        Devin team only — one press walks a full salvo down columns 1, 4 and 6.
+      </div>
+      <div class="swarm-key fusion-key">
+        <span><i class="chip swe2-chip"></i> 30 squares, every open one in those columns</span>
+      </div>
+    </section>
+
+    <section class="card swarm-bar outsource-bar">
+      <button id="outsource" class="swarm-btn outsource-btn"
+              title="Devin-only: Cursor's largest hull surfaces and goes down">
+        <span class="logo swarm-mark"></span><span>Outsourced IT (AI Labor)</span>
+      </button>
+      <div class="swarm-note" id="outsource-note">
+        Devin team only — Cursor's largest ship still afloat surfaces and is struck out entirely.
+      </div>
+      <div class="swarm-key fusion-key">
+        <span><i class="chip outsource-chip"></i> next largest hull if that one is already down</span>
       </div>
     </section>
    </aside>

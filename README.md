@@ -82,11 +82,22 @@ swarm down.
 ### Devin Fusion
 
 Under the swarm button, and also Devin-only: arm **Devin Fusion** and your next order — spoken or
-clicked — goes up as a five-missile salvo instead of one shot. The named square is hit first, then
-the four squares around it; any of those already shelled are skipped and the salvo spills outward
-(corners, then the next ring) so five live missiles always hit the water, and it never wastes a
-shot on a square you have already taken or runs off the edge of the board. Cursor still answers
+clicked — goes up as a two-missile salvo instead of one shot. The named square is hit first, then
+the nearest open square beside it; anything already shelled is skipped and the second shot spills
+outward (corners, then the next ring) so both missiles always hit live water. Cursor still answers
 once. Fusion disarms itself after the salvo, so the shot after it is an ordinary single one.
+
+### SWE-2
+
+One press and Devin walks a full salvo down columns 1, 4 and 6 — every square in them that has not
+been shelled yet, top to bottom, thirty missiles on an empty board. Long salvos fly on a short fuse
+so the sweep does not take a minute to watch. Cursor answers once at the end.
+
+### Outsourced IT (AI Labor)
+
+Cursor's largest hull still afloat surfaces on their side of the board and is struck square by
+square until it goes down. Press it again and the next largest surfaces, and so on until Cursor has
+nothing left.
 
 ### The fleets
 
@@ -170,7 +181,8 @@ battleship/
   game.py     placement UI, turn loop, AI, endgame
   session.py  headless game state machine (same rules, no I/O) for the browser
   probability.py  Devin Security Swarm: Bayesian posterior (+ density fallback) over the enemy grid
-  web.py      stdlib HTTP server: static files + /api/state, /api/fire, /api/fusion, /api/new, /api/reroll
+  web.py      stdlib HTTP server: static files + /api/state, /api/fire, /api/fusion, /api/swe2,
+              /api/outsource, /api/new, /api/reroll
   static/     browser front-end: Wii board in CSS 3D, missiles, mic button
   __main__.py CLI entry point
 ```

@@ -244,7 +244,7 @@ function centreOf(grid, row, col) {
   return { x: col * CELL + CELL / 2, y: row * CELL + CELL / 2 };
 }
 
-async function flyMissile(team, row, col) {
+async function flyMissile(team, row, col, quick) {
   const grid = el(team === "devin" ? "away-grid" : "home-grid");
   const target = centreOf(grid, row, col);
   const start = team === "devin"
@@ -257,7 +257,7 @@ async function flyMissile(team, row, col) {
   else missile.textContent = "➤◆";
   grid.append(missile);
 
-  const steps = 22;
+  const steps = quick ? 8 : 22;
   for (let i = 0; i <= steps; i++) {
     const t = i / steps;
     const x = start.x + (target.x - start.x) * t;
@@ -273,12 +273,12 @@ async function flyMissile(team, row, col) {
       grid.append(puff);
       setTimeout(() => puff.remove(), 900);
     }
-    await sleep(22);
+    await sleep(quick ? 10 : 22);
   }
   missile.remove();
 }
 
-async function boom(team, row, col, glyph, size) {
+async function boom(team, row, col, glyph, size, quick) {
   const grid = el(team === "devin" ? "away-grid" : "home-grid");
   const at = centreOf(grid, row, col);
   const node = document.createElement("div");
@@ -288,7 +288,7 @@ async function boom(team, row, col, glyph, size) {
   node.style.top = `${at.y}px`;
   if (size) node.style.fontSize = size;
   grid.append(node);
-  await sleep(650);
+  await sleep(quick ? 180 : 650);
   node.remove();
 }
 
@@ -475,18 +475,22 @@ function cellNode(team, row, col) {
 }
 
 async function playEvents(events) {
+  /* A SWE-2 sweep is thirty shots; at parade speed that is half a minute of
+     watching, so long salvos fly on a short fuse and skip the sink party. */
+  const quick = events.length > 6;
   for (const ev of events) {
+    if (ev.reveal) el("away-grid").append(shipNode(ev.reveal, "cursor"));
     const aim = cellNode(ev.team, ev.row, ev.col);
     if (aim) aim.classList.add("aim");
-    await flyMissile(ev.team, ev.row, ev.col);
+    await flyMissile(ev.team, ev.row, ev.col, quick);
     if (aim) setTimeout(() => aim.classList.remove("aim"), 700);
     if (ev.result === "miss") {
-      await boom(ev.team, ev.row, ev.col, "o", "1.1rem");
+      await boom(ev.team, ev.row, ev.col, "o", "1.1rem", quick);
     } else if (ev.result === "hit") {
-      await boom(ev.team, ev.row, ev.col, ev.team === "devin" ? "logo" : "✸");
+      await boom(ev.team, ev.row, ev.col, ev.team === "devin" ? "logo" : "✸", null, quick);
     } else {
-      await boom(ev.team, ev.row, ev.col, "💥", "2.2rem");
-      await finisher(ev.team, ev.ship);
+      await boom(ev.team, ev.row, ev.col, "💥", "2.2rem", quick);
+      if (!quick) await finisher(ev.team, ev.ship);
     }
   }
 }
@@ -508,7 +512,7 @@ function disarmFusion() {
   fusionArmed = false;
   el("fusion").setAttribute("aria-pressed", "false");
   el("fusion-note").textContent =
-    "Devin team only — arm it and your next called square goes up in a five-missile salvo.";
+    "Devin team only — arm it and your next called square goes up in a double-missile salvo.";
 }
 
 function say(text, isError) {
@@ -534,7 +538,7 @@ async function fireAt(row, col) {
   }
   const fusion = fusionArmed;
   busy = true;
-  say(fusion ? `Devin Fusion: five missiles around ${LETTERS[row]}${col + 1}.` : "");
+  say(fusion ? `Devin Fusion: two missiles around ${LETTERS[row]}${col + 1}.` : "");
   if (fusion) disarmFusion();
   try {
     const data = await api(fusion ? "/api/fusion" : "/api/fire", { row, col });
@@ -553,6 +557,31 @@ async function fireAt(row, col) {
   const next = queued;
   queued = null;
   if (next && !(state && state.winner)) await fireAt(next[0], next[1]);
+}
+
+/** A Devin-only special that needs no coordinate: SWE-2, Outsourced IT. */
+async function runSalvo(path, opening) {
+  if (busy) return;
+  if (state && state.winner) {
+    say("Game over — start a new one.", true);
+    return;
+  }
+  busy = true;
+  say(opening);
+  try {
+    const data = await api(path, {});
+    await playEvents(data.events);
+    state = data.state;
+    paint();
+    if (state.winner) {
+      say(state.winner === "devin" ? "🦦 FINAL: DEVIN WINS" : "◆ FINAL: CURSOR WINS");
+      if (state.winner === "devin") await victoryParty();
+    }
+  } catch (err) {
+    say(err.message, true);
+  } finally {
+    busy = false;
+  }
 }
 
 /* ---------- speech ---------- */
@@ -726,9 +755,15 @@ async function boot() {
     fusionArmed = true;
     el("fusion").setAttribute("aria-pressed", "true");
     el("fusion-note").textContent =
-      "Armed — your next shot lands on that square and the four nearest open ones.";
+      "Armed — your next shot lands on that square and the nearest open one beside it.";
     say("Devin Fusion armed. Call your square.");
   });
+  el("swe2").addEventListener("click", () =>
+    runSalvo("/api/swe2", "SWE-2 sweep: columns 1, 4 and 6, top to bottom.")
+  );
+  el("outsource").addEventListener("click", () =>
+    runSalvo("/api/outsource", "Outsourced IT: Cursor's biggest hull is surfacing.")
+  );
   el("swarm").addEventListener("click", () => {
     swarmOn = !swarmOn;
     el("swarm").setAttribute("aria-pressed", String(swarmOn));
