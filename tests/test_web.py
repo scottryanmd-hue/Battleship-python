@@ -208,14 +208,19 @@ class ApiTests(unittest.TestCase):
         self.assertEqual(late.exception.code, 409)
 
     def test_static_files_are_served(self):
-        for path, marker in (("/", b"Battleship Channel"), ("/app.js", b"webkitSpeechRecognition")):
+        pages = (
+            ("/", b"Battleship Channel"),
+            ("/battleship/static/app.js", b"webkitSpeechRecognition"),
+            ("/battleship/static/engine.js", b"LocalEngine"),
+        )
+        for path, marker in pages:
             with urllib.request.urlopen(self.url + path) as response:
                 self.assertIn(marker, response.read())
 
     def test_missing_victory_track_is_a_clean_404(self):
         """The page probes for an optional custom anthem on load."""
         with self.assertRaises(urllib.error.HTTPError) as missing:
-            urllib.request.urlopen(self.url + "/sounds/victory.mp3")
+            urllib.request.urlopen(self.url + "/battleship/static/sounds/victory.mp3")
         self.assertEqual(missing.exception.code, 404)
 
 

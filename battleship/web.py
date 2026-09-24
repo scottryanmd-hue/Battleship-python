@@ -16,7 +16,9 @@ from pathlib import Path
 from .board import parse_coord
 from .session import Session
 
-STATIC = Path(__file__).parent / "static"
+#: The page is the repository's root index.html — the same file a static host
+#: serves — and it addresses its script and artwork under battleship/static/.
+ROOT = Path(__file__).parent.parent
 CONTENT_TYPES = {
     ".html": "text/html",
     ".css": "text/css",
@@ -50,8 +52,8 @@ class Handler(BaseHTTPRequestHandler):
         self._send(status, json.dumps(payload).encode(), "application/json")
 
     def _static(self, name: str) -> None:
-        path = (STATIC / name).resolve()
-        if not path.is_file() or STATIC.resolve() not in path.parents:
+        path = (ROOT / name).resolve()
+        if not path.is_file() or ROOT.resolve() not in path.parents:
             self._send(404, b"not found", "text/plain")
             return
         self._send(200, path.read_bytes(), CONTENT_TYPES.get(path.suffix, "text/plain"))

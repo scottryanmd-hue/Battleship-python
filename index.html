@@ -4,7 +4,8 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Battleship Channel — Devin vs Cursor</title>
-<link rel="stylesheet" href="style.css" />
+<link rel="stylesheet" href="battleship/static/style.css" />
+<link rel="icon" href="battleship/static/cognition.png" />
 </head>
 <body>
   <header class="channel-bar">
@@ -16,7 +17,7 @@
   <main class="console">
    <div class="play">
     <section class="card scoreboard">
-      <div class="mii mii-devin"><img src="otter.png" alt="Devin otter"></div>
+      <div class="mii mii-devin"><img src="battleship/static/otter.png" alt="Devin otter"></div>
       <div class="score">
         <div class="teams"><span>H O M E</span><span>A W A Y</span></div>
         <div class="big" id="big-score">0 – 0</div>
@@ -124,6 +125,10 @@
   </footer>
 
   <div id="finisher" class="finisher"></div>
-  <script src="app.js"></script>
+  <!-- Opened from a static host there is no Python to answer /api, so the
+       rules run here in the page instead; `python3 -m battleship --web`
+       serves this same file and answers them itself. -->
+  <script src="battleship/static/engine.js"></script>
+  <script src="battleship/static/app.js"></script>
 </body>
 </html>
