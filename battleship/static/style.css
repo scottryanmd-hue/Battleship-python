@@ -9,6 +9,10 @@
   --steel-lit: #c3c9ce;
   --steel-dark: #5c6268;
   --orange: #e2761b;
+  /* One square of the sea. It tracks the window so all ten rows sit inside
+     their card and the control rail needs no scroll: the width term is the
+     space left beside the rail, the height term keeps row J on screen. */
+  --cell: clamp(18px, min(calc(min(50vw, 800px) / 12.05 - 19px), 4.4vh), 46px);
 }
 
 * { box-sizing: border-box; }
@@ -38,12 +42,24 @@ body {
 
 /* Boards on the left, a control rail pinned alongside them so no button needs a scroll. */
 .console {
-  max-width: 1400px; margin: 22px auto 90px; padding: 0 18px;
+  max-width: 1600px; margin: 14px auto 24px; padding: 0 18px;
   display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 18px; align-items: start;
 }
-.play { display: grid; gap: 18px; min-width: 0; }
-.rail { display: grid; gap: 14px; position: sticky; top: 18px; align-content: start; }
-.rail .card { padding: 14px 16px; }
+.play { display: grid; gap: 12px; min-width: 0; }
+.rail { display: grid; gap: 10px; position: sticky; top: 14px; align-content: start; }
+.rail .card { padding: 10px 14px; }
+/* Short windows: tighten the rail so its five cards still clear the fold. */
+@media (max-height: 860px) {
+  .rail { gap: 8px; }
+  .rail .card { padding: 8px 12px; }
+  .rail .mic { padding: 10px 18px; font-size: 0.92rem; }
+  .rail .swarm-btn { padding: 9px 16px; font-size: 0.88rem; }
+  .rail .wii-btn { padding: 8px 12px; }
+  .rail .transcript, .rail .swarm-note { font-size: 0.76rem; }
+  .rail .swarm-key { display: none; }
+  .controls, .swarm-bar { gap: 8px; }
+}
+
 @media (max-width: 1080px) {
   .console { grid-template-columns: minmax(0, 1fr); }
   .rail { position: static; }
@@ -54,7 +70,7 @@ body {
   border: 1px solid #dbe6ee;
   border-radius: 22px;
   box-shadow: 0 10px 24px rgba(30, 80, 120, 0.12), inset 0 1px 0 #fff;
-  padding: 16px 20px;
+  padding: 12px 18px;
 }
 
 /* ---- scoreboard ---- */
@@ -63,10 +79,10 @@ body {
   grid-template-columns: auto 1fr auto;
   grid-template-areas: "miiL score miiR" "meters meters meters";
   align-items: center;
-  gap: 10px 18px;
+  gap: 4px 18px;
 }
 .mii {
-  width: 76px; height: 76px; border-radius: 50%;
+  width: 58px; height: 58px; border-radius: 50%;
   background: radial-gradient(circle at 35% 30%, #fff, #e7eef4);
   border: 2px solid #d5e1ea;
   display: grid; place-content: center; text-align: center; line-height: 1.1;
@@ -83,54 +99,61 @@ body {
   background: none; border: 0; box-shadow: none;
 }
 .mii-cursor .glue-body {
-  position: absolute; left: 22px; top: 26px;
-  width: 32px; height: 40px; border-radius: 8px 8px 12px 12px;
+  position: absolute; left: 15px; top: 20px;
+  width: 26px; height: 32px; border-radius: 7px 7px 10px 10px;
   background: linear-gradient(100deg, #fdfdfd, #dfe6ec 55%, #b9c4cd);
   border: 2px solid #c3ccd4;
   box-shadow: inset 0 2px 0 #fff, 0 4px 8px rgba(30, 80, 120, 0.2);
 }
 .mii-cursor .glue-body::after {
   content: "GLUE";
-  position: absolute; left: 0; right: 0; top: 12px;
-  text-align: center; font-size: 0.5rem; font-weight: 800;
+  position: absolute; left: 0; right: 0; top: 9px;
+  text-align: center; font-size: 0.44rem; font-weight: 800;
   letter-spacing: 0.06em; color: #e2761b;
 }
 .mii-cursor .glue-cap {
-  position: absolute; left: 31px; top: 6px;
-  width: 14px; height: 22px;
+  position: absolute; left: 22px; top: 4px;
+  width: 12px; height: 18px;
   background: linear-gradient(180deg, #f6a23c, #d9761a);
   clip-path: polygon(38% 0, 62% 0, 100% 100%, 0 100%);
   border-radius: 3px;
 }
 .mii-cursor .glue-drip {
-  position: absolute; left: 36px; top: 24px;
-  width: 7px; height: 9px; border-radius: 0 0 50% 50% / 0 0 70% 70%;
+  position: absolute; left: 26px; top: 19px;
+  width: 6px; height: 8px; border-radius: 0 0 50% 50% / 0 0 70% 70%;
   background: #f3f6f8; box-shadow: 0 0 0 1px #d3dbe1;
 }
 .score { grid-area: score; text-align: center; }
 .teams { display: flex; justify-content: space-around; font-size: 0.8rem; letter-spacing: 0.35em; opacity: 0.7; }
-.big { font-size: 2.6rem; font-weight: 700; color: var(--wii-blue); }
+.big { font-size: 1.9rem; font-weight: 700; line-height: 1.1; color: var(--wii-blue); }
 .round { font-size: 0.8rem; letter-spacing: 0.2em; opacity: 0.7; }
-.names { display: flex; justify-content: space-between; font-weight: 600; font-size: 0.85rem; margin-top: 6px; }
+.names { display: flex; justify-content: space-between; font-weight: 600; font-size: 0.8rem; margin-top: 2px; }
 .names .devin { color: var(--orange); }
 .names .cursor { color: var(--ink); }
-.meters { grid-area: meters; display: grid; gap: 4px; margin-top: 8px; }
-.meter-row { display: grid; grid-template-columns: 2.2rem 1fr 7rem 1fr 2.2rem; align-items: center; gap: 8px; font-size: 0.78rem; }
+.meters { grid-area: meters; display: grid; gap: 2px; margin-top: 2px; }
+.meter-row { display: grid; grid-template-columns: 2.2rem 1fr 7rem 1fr 2.2rem; align-items: center; gap: 8px; font-size: 0.72rem; }
 .meter-row .label { text-align: center; letter-spacing: 0.14em; opacity: 0.75; }
-.bar { height: 10px; border-radius: 6px; background: #e3ebf1; overflow: hidden; }
+.bar { height: 8px; border-radius: 6px; background: #e3ebf1; overflow: hidden; }
 .bar span { display: block; height: 100%; border-radius: 6px; }
 .bar.left span { float: right; }
 .count { font-variant-numeric: tabular-nums; text-align: center; font-weight: 600; }
 
 /* ---- boards in 3/4 view ---- */
-.boards { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
-.board-card h2 { margin: 0 0 8px; font-size: 0.85rem; letter-spacing: 0.18em; }
+.boards { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.board-card h2 { margin: 0; font-size: 0.8rem; letter-spacing: 0.18em; }
 .board-card h2.devin { color: var(--orange); }
 .board-card h2.cursor { color: var(--ink); }
 
-.stage { perspective: 900px; perspective-origin: 50% 20%; padding: 26px 0 10px; }
+/* The tilted grid still lays out at its full upright height, so the stage is
+   capped to what the board actually covers on screen and the overhang is
+   allowed to show. */
+.stage {
+  perspective: 900px; perspective-origin: 50% 20%;
+  height: calc(var(--cell) * 8.4);
+  margin: calc(var(--cell) * 0.25) 0 calc(var(--cell) * 0.8);
+  display: grid; place-content: center;
+}
 .grid {
-  --cell: 40px;
   position: relative;
   width: calc(var(--cell) * 10);
   margin: 0 auto;
@@ -394,7 +417,7 @@ body {
 @keyframes boom { from { transform: translate(-50%, -50%) scale(0.3); } to { transform: translate(-50%, -50%) scale(2.2); opacity: 0; } }
 
 /* ---- fleet lists ---- */
-.fleet { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 4px; font-size: 0.78rem; }
+.fleet { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 2px; font-size: 0.74rem; }
 .fleet li { display: flex; justify-content: space-between; gap: 10px; }
 .fleet .pips { letter-spacing: 2px; color: var(--steel); }
 .fleet .pips .hit { color: #d0342c; }
@@ -507,7 +530,10 @@ body {
 .outsource-btn .swarm-mark { background-color: #2f9e44; }
 .swarm-btn[disabled] { opacity: 0.55; cursor: not-allowed; }
 
-.log ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: 0.85rem; }
+.log ul {
+  list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; font-size: 0.8rem;
+  max-height: 4.6rem; overflow-y: auto;
+}
 .log li { opacity: 0.85; }
 .log li:last-child { opacity: 1; font-weight: 600; }
 

@@ -4,7 +4,14 @@
 
 const SIZE = 10;
 const LETTERS = "ABCDEFGHIJ";
-const CELL = 40;
+/* Square size is set in CSS and scales with the window, so read it rather than
+   assume it: ships, missiles and markers are positioned in these pixels. */
+let CELL = 40;
+
+function measureCell() {
+  const size = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--cell"));
+  if (size > 0) CELL = size;
+}
 
 const el = (id) => document.getElementById(id);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -732,11 +739,16 @@ function tickClock() {
 }
 
 async function boot() {
+  measureCell();
   buildGrid(el("home-grid"), false);
   buildGrid(el("away-grid"), true);
   loadAnthem();
   state = await api("/api/state");
   paint();
+  window.addEventListener("resize", () => {
+    measureCell();
+    if (state) paint();
+  });
   setupMic();
   tickClock();
   setInterval(tickClock, 20000);
