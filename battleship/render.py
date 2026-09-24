@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+import shutil
 import sys
 import time
 import unicodedata
@@ -149,37 +150,59 @@ def menu_screen(step: int) -> list[str]:
     return out
 
 
-def hull_cell(ship, row: int, col: int, state: str, team_glyph: str, accent: str) -> str:
-    """One three-column slice of a grey hull, so cells join into a whole ship."""
+def segment_name(idx: int, last: int) -> str:
+    """Which part of the vessel sits on this square, bow first."""
+    if idx == 0:
+        return "bow"
+    if idx == last:
+        return "stern"
+    if idx == 1:
+        return "bridge"
+    if idx == last - 1:
+        return "funnel"
+    return "mid"
+
+
+def hull_cell(
+    ship, row: int, col: int, state: str, team_glyph: str, accent: str
+) -> tuple[str, str]:
+    """One square of a vessel: what stands above the waterline, and the hull."""
     idx = ship.cells.index((row, col))
     last = len(ship.cells) - 1
     horizontal = ship.cells[0][0] == ship.cells[-1][0]
     parts = art.HULL_H if horizontal else art.HULL_V
-    segment = parts["bow" if idx == 0 else "stern" if idx == last else "mid"]
+    top, hull = parts[segment_name(idx, last)]
     steel = art.STEEL_DEAD if state == "sunk" else art.STEEL
+    deck = art.STEEL_DEAD if state == "sunk" else art.STEEL_LIT
 
-    left, middle, right = segment
+    left, middle, right = hull
     if state == "hit":
         middle = art.color("✸", art.RED + art.BOLD)
+        top = art.color(" ▴ ", art.RED)  # fire where the missile went in
     elif state == "sunk":
         middle = art.color("#", art.STEEL_DEAD)
+        top = art.color(top, deck)
     elif idx == last // 2 and 0 < idx < last:
-        middle = art.color(team_glyph, accent)  # team logo painted amidships
-    else:
+        top = art.color(top[0], deck) + art.color(team_glyph, accent) + art.color(top[2], deck)
         middle = art.color(middle, steel)
-    return art.color(left, steel) + middle + art.color(right, steel)
+    else:
+        top = art.color(top, deck)
+        middle = art.color(middle, steel)
+    return top, art.color(left, steel) + middle + art.color(right, steel)
 
 
-def cell_block(board: Board, row: int, col: int, reveal: bool, team_glyph: str, accent: str) -> str:
-    """The full CELL-wide contents of one square."""
+def cell_block(
+    board: Board, row: int, col: int, reveal: bool, team_glyph: str, accent: str
+) -> tuple[str, str]:
+    """The full CELL-wide, two-row contents of one square."""
     mark = board.grid[row][col]
     ship = board.ship_at(row, col)
     if ship is not None and (reveal or ship.sunk or mark == Board.HIT):
         state = "sunk" if mark == Board.SUNK else "hit" if mark == Board.HIT else "ok"
         return hull_cell(ship, row, col, state, team_glyph, accent)
     if mark == Board.MISS:
-        return " " + art.color("o", art.WII_BLUE) + " "
-    return " " + art.color(art.WATER, art.NAVY) + " "
+        return art.color(" ˙ ", art.SILVER), " " + art.color("o", art.WII_BLUE) + " "
+    return "   ", " " + art.color(art.WATER, art.NAVY) + " "
 
 
 def render_board(
@@ -195,15 +218,20 @@ def render_board(
     header_row = "   " + "".join(f"{n:^{CELL}}" for n in range(1, SIZE + 1))
     rows = [tint(art.color(header_row, art.INK), art.BG_SEA)]
     for r in range(SIZE):
-        cells = []
+        tops, hulls = [], []
         for c in range(SIZE):
             shot = overlay.get((r, c))
             if shot:
                 lead = (CELL - 1) // 2
-                cells.append(" " * lead + shot + " " * (CELL - 1 - lead))
+                top, hull = cell_block(board, r, c, reveal, team_glyph, accent)
+                tops.append(top)
+                hulls.append(" " * lead + shot + " " * (CELL - 1 - lead))
             else:
-                cells.append(cell_block(board, r, c, reveal, team_glyph, accent))
-        rows.append(tint(art.color(f" {LETTERS[r]} ", art.INK) + "".join(cells), art.BG_SEA))
+                top, hull = cell_block(board, r, c, reveal, team_glyph, accent)
+                tops.append(top)
+                hulls.append(hull)
+        rows.append(tint("   " + "".join(tops), art.BG_SEA))
+        rows.append(tint(art.color(f" {LETTERS[r]} ", art.INK) + "".join(hulls), art.BG_SEA))
     return panel(rows, title=title, accent=accent, width=BOARD_W)
 
 
@@ -220,7 +248,7 @@ def meter(value: int, total: int, code: str, width: int = 10) -> str:
     return art.color("▰" * filled, code) + art.color("▱" * (width - filled), art.SILVER)
 
 
-def scoreboard(stats: dict) -> list[str]:
+def scoreboard(stats: dict, compact: bool = False) -> list[str]:
     """Wii Sports style: two Miis, one big score, soft meters underneath."""
     a = art
     lead = stats["devin_sunk"] - stats["cursor_sunk"]
@@ -260,24 +288,29 @@ def scoreboard(stats: dict) -> list[str]:
         return " " * max(0, (ARENA_W - 4 - visible_len(row)) // 2) + row
 
     shots = max(1, stats["devin_hits"] + stats["devin_misses"], stats["cursor_hits"] + stats["cursor_misses"])
-    body = top + [names, ""] + [
+    head = [] if compact else top + [names, ""]
+    body = head + [
         stat_row("HITS", stats["devin_hits"], stats["cursor_hits"], a.RED, shots),
         stat_row("MISSES", stats["devin_misses"], stats["cursor_misses"], a.WII_BLUE, shots),
         stat_row("SHIPS SUNK", stats["devin_sunk"], stats["cursor_sunk"], a.YELLOW, fleet),
         stat_row("FLEET LEFT", stats["devin_alive"], stats["cursor_alive"], a.GREEN, fleet),
     ]
+    if compact:
+        headline = f"DEVIN  {score}  CURSOR      ROUND {stats['turn']}"
+        body.insert(0, a.color(pad(headline, ARENA_W - 6), a.WII_BLUE + a.BOLD))
     return panel(body, title="SCOREBOARD", accent=art.WII_BLUE, width=ARENA_W - 4)
 
 
 def fleet_status(board: Board, label: str, accent: str) -> list[str]:
     lines = []
     for ship in board.ships:
+        silhouette = ["◢"] + ["█"] * (ship.size - 2) + ["◣"]
         if ship.sunk:
-            bar = art.color("▰" * ship.size, art.STEEL_DEAD) + art.color("  SUNK", art.DARK)
+            bar = art.color("".join(silhouette), art.STEEL_DEAD) + art.color("  SUNK", art.DARK)
         else:
             bar = "".join(
-                art.color("✸", art.RED) if cell in ship.hits else art.color("▰", art.STEEL)
-                for cell in ship.cells
+                art.color("✸", art.RED) if cell in ship.hits else art.color(glyph, art.STEEL)
+                for cell, glyph in zip(ship.cells, silhouette)
             )
         lines.append(art.color(f"{ship.name:<11}", art.INK) + " " + bar)
     return panel(lines, title=f"{label} FLEET", accent=accent, width=BOARD_W)
@@ -305,7 +338,11 @@ class Screen:
         extra: list[str] | None = None,
     ) -> None:
         clear()
-        body = scoreboard(self.stats)
+        extra = extra or []
+        rows = shutil.get_terminal_size((80, 60)).lines
+        # Vessels are two rows tall, so a short terminal sheds the Mii portraits
+        # and then the fleet panels to keep the action on screen.
+        body = scoreboard(self.stats, compact=len(extra) + 2 * SIZE + 24 > rows)
         left = render_board(
             self.player_board,
             title="HOME · DEVIN WATERS",
@@ -323,12 +360,13 @@ class Screen:
             overlay=overlay_ai,
         )
         body += side_by_side(left, right)
-        body += side_by_side(
+        fleets = side_by_side(
             fleet_status(self.player_board, "DEVIN", art.ORANGE),
             fleet_status(self.ai_board, "CURSOR", art.INK),
         )
-        if extra:
-            body += extra
+        if len(body) + len(fleets) + len(extra) + 7 <= rows:
+            body += fleets
+        body += extra
         out = header() + [fill(line, ARENA_W, art.BG_WHITE) for line in body]
         out += footer("▰ ship   ✸ hit   o miss   # sunk")
         if message:

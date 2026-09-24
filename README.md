@@ -6,8 +6,9 @@ grid, and a Wii-style scoreboard tracks hits, misses and ships sunk.
 
 The whole UI is dressed as a Nintendo Wii console: a blue channel bar with a clock, glossy white
 rounded panels, a Wii Menu channel-select intro with a hand pointer and Wiimote, Mii-style team
-portraits, Wii Sports meters and a Wii Menu button tray along the bottom. Ships are drawn as solid
-grey hulls spanning their squares — Cursor's stay hidden until you hit them.
+portraits, Wii Sports meters and a Wii Menu button tray along the bottom. Ships are drawn in a 3/4
+view — two rows per square, a raked bow, deckhouse and funnel above the waterline and a grey steel
+hull below — spanning the squares they occupy. Cursor's stay hidden until you hit them.
 
 ## Run it
 
@@ -70,7 +71,7 @@ python3 -m battleship --seed 42     # reproducible ship placement and AI shots
 | Symbol | Meaning |
 | --- | --- |
 | `·` | unexplored water |
-| `◀███▶` / `▐▲▌` | a grey hull sitting across the squares it occupies, bow to stern |
+| `◢██▄▟█▙███◣` | a grey vessel in 3/4 view, raked bow through superstructure to stern |
 | `◉` / `◆` | the team logo painted amidships (Devin on your fleet, Cursor on theirs) |
 | `o` | miss |
 | `✸` | hit |

@@ -18,7 +18,7 @@ GREEN = "\033[38;5;28m"
 
 # Hull steel: the ships themselves are grey, whoever they belong to.
 STEEL = "\033[38;5;245m"
-STEEL_LIT = "\033[38;5;252m"
+STEEL_LIT = "\033[38;5;250m"
 STEEL_DEAD = "\033[38;5;240m"
 
 BG_WHITE = "\033[48;5;255m"
@@ -41,9 +41,23 @@ SMOKE = ["·", "∘", "°", "˙"]
 
 OTTER_SMALL = "🦦"
 
-# Hull segments, drawn three columns wide so neighbouring cells join up.
-HULL_H = {"bow": "◀██", "mid": "███", "stern": "██▶"}
-HULL_V = {"bow": "▐▲▌", "mid": "▐█▌", "stern": "▐▼▌"}
+# Ships are drawn in 3/4 view: every square is three columns by two rows, the
+# upper row carrying whatever stands above the waterline and the lower row the
+# hull itself, so hulls join across squares into one vessel.
+HULL_H = {
+    "bow": ("  ▄", "◢██"),
+    "bridge": ("▟█▙", "███"),
+    "funnel": ("▄▮▄", "███"),
+    "mid": ("▄▄▄", "███"),
+    "stern": ("▄  ", "██◣"),
+}
+HULL_V = {
+    "bow": (" ▲ ", "◢█◣"),
+    "bridge": ("▐█▌", "███"),
+    "funnel": ("▐▮▌", "███"),
+    "mid": ("▐█▌", "███"),
+    "stern": ("▐█▌", "◥█◤"),
+}
 
 # Mii-style channel portraits.
 MII_DEVIN = [
